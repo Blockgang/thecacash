@@ -1,0 +1,30 @@
+version: "3"
+services:
+
+  db:
+    build: ./db
+    environment:
+        MYSQL_ROOT_PASSWORD: 8drRNG8RWw9FjzeJuavbY6f9
+    volumes:
+      - thecadb:/var/lib/mysql
+
+  memcache:
+    build: ./memcache
+
+  sync:
+    build: ./sync 
+    stdin_open: true
+    tty: true
+
+  web:
+    build: ./web
+    stdin_open: true
+    tty: true
+    volumes:
+      - thecaweb:/var/thecaweb/ 
+
+volumes:
+  thecaweb:
+    external: true
+  thecadb:
+    external: true
