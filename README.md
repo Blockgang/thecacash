@@ -13,12 +13,6 @@ sudo usermod -aG docker <username>
 install docker-compose
 * https://docs.docker.com/compose/install/#install-compose
 
-create data volumes
-```
-docker volume create thecaweb
-#docker volume create thecadb
-```
-
 get & build containers
 ```
 docker-compose build
