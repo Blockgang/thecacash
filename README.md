@@ -1,18 +1,7 @@
-# theca.cash
-Container infrastructure
+# THECA.CASH
+Media plattform based on Bitcoin Cash (OP_RETURN)
 
-## setup
-
-### docker
-install docker (on linux):
-```
-curl -fsSL get.docker.com -o get-docker.sh
-sudo sh get-docker.sh
-sudo usermod -aG docker <username>
-```
-
-### docker-compose
-* https://docs.docker.com/compose/install/#install-compose
+## Setup
 
 ### theca.cash
 get & build containers
@@ -21,9 +10,13 @@ git clone https://github.com/Blockgang/theca.cash.git
 docker network create --subnet 192.168.11.0/24 --gateway 192.168.11.254 thecanet
 docker-compose build
 ```
-start in d1aemon mode
+start in daemon mode
 ```
 docker-compose up -d
+```
+start in verbose mode
+```
+docker-compose up
 ```
 
 stop dockers
@@ -31,37 +24,19 @@ stop dockers
 docker-compose down
 ```
 
-## how to access?
-
-We can use the dns names (from inside the container)
-
-* 192.168.11.2		db
-* 192.168.11.3		memcache
-* 192.168.11.4		sync
-* 192.168.11.5		web
-
-So we can use something like that in our binaries
+#### sync
+##### dependencies
 ```
-db,err := sql.Open("mysql", root:8drRNG8RWw9FjzeJuavbY6f9@tcp(db:3306)/")
-
-//Connect to our memcache instance
-mc := memcache.New("memcache:11211")
+ go get -u github.com/go-sql-driver/mysql
 ```
 
-
-# THECA.CASH
-
-Media Plattform basierend auf Bitcoin Cash (OP_RETURN)
-
+## Links?
 * https://blockgang.github.io/chaintube
 * https://instant.io/
 * https://icons8.com/icon/set/error/all
 * https://github.com/unwriter/datacash
 * https://docs.bitdb.network/docs/quickstart
 * https://github.com/webtorrent/webtorrent
-
-# Installation
- go get -u github.com/go-sql-driver/mysql
 
 # Prefix
 
@@ -124,7 +99,7 @@ Create poll 	0x6d10 	poll_type(1), option_count(1), question(209) 	Implemented
 Add poll option 	0x6d13 	poll_txhash(30), option(184) 	Implemented 	
 Poll vote 	0x6d14 	poll_txhash(30), comment(184) 	Implemented 	
 Send money 	0x6d24 	message(217) 	Planned
-```
+``` 
 
 ## TODO
 
