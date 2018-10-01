@@ -3,6 +3,7 @@ Container infrastructure
 
 ## setup
 
+### docker
 install docker (on linux):
 ```
 curl -fsSL get.docker.com -o get-docker.sh
@@ -10,14 +11,16 @@ sudo sh get-docker.sh
 sudo usermod -aG docker <username> 
 ```
 
-install docker-compose
+### docker-compose
 * https://docs.docker.com/compose/install/#install-compose
 
+### theca.cash
 get & build containers
 ```
+git clone https://github.com/Blockgang/theca.cash.git
 docker-compose build
 ```
-start in daemon mode
+start in d1aemon mode
 ```
 docker-compose up -d
 ```
