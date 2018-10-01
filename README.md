@@ -18,6 +18,7 @@ sudo usermod -aG docker <username>
 get & build containers
 ```
 git clone https://github.com/Blockgang/theca.cash.git
+docker network create --subnet 192.168.11.0/24 --gateway 192.168.11.254 thecanet
 docker-compose build
 ```
 start in d1aemon mode
@@ -34,10 +35,10 @@ docker-compose down
 
 We can use the dns names (from inside the container)
 
-* db
-* memcache
-* web
-* sync 
+* 192.168.11.2		db
+* 192.168.11.3		memcache
+* 192.168.11.4		sync
+* 192.168.11.5		web
 
 So we can use something like that in our binaries
 ```
