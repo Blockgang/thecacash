@@ -5,14 +5,25 @@ services:
     build: ./db
     environment:
         MYSQL_ROOT_PASSWORD: 8drRNG8RWw9FjzeJuavbY6f9
+    networks:
+      thecanet:
+        ipv4_address: 192.168.11.2
 
   memcache:
     build: ./memcache
+    networks:
+      thecanet:
+        ipv4_address: 192.168.11.3
 
   sync:
     build: ./sync 
-    stdin_open: true
-    tty: true
+    depends_on:
+      - "db"
+        #stdin_open: true
+        #tty: true
+    networks:
+      thecanet:
+        ipv4_address: 192.168.11.4
 
   web:
     build: ./web
@@ -20,3 +31,11 @@ services:
       - ./web/web/:/usr/share/nginx/html/
     ports:
       - "127.0.0.1:80:80"
+    networks:
+      thecanet:
+        ipv4_address: 192.168.11.5
+
+networks:
+  thecanet:
+    external: true
+
