@@ -1,7 +1,8 @@
 CREATE DATABASE `theca`;
 
+USE theca;
 
-  CREATE TABLE `opreturn` (
+CREATE TABLE `opreturn` (
 	    `txid` varchar(64) NOT NULL,
 	    `prefix` varchar(4) DEFAULT NULL,
 	    `hash` varchar(255) DEFAULT NULL,
@@ -10,4 +11,4 @@ CREATE DATABASE `theca`;
 	    `blocktimestamp` int(11) DEFAULT NULL,
 	    `blockheight` int(11) DEFAULT NULL,
 	    PRIMARY KEY (`txid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+)
