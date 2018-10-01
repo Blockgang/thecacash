@@ -50,6 +50,7 @@ RUN set -ex; \
 
 RUN mkdir /docker-entrypoint-initdb.d
 
+
 # install "apt-transport-https" for Percona's repo (switched to https-only)
 # install "pwgen" for randomizing passwords
 # install "tzdata" for /usr/share/zoneinfo/
@@ -138,6 +139,10 @@ RUN set -ex; \
 VOLUME /var/lib/mysql
 
 COPY docker-entrypoint.sh /usr/local/bin/
+
+# theca sql files insert
+COPY *.sql /docker-entrypoint-initdb.d/
+
 RUN ln -s usr/local/bin/docker-entrypoint.sh / # backwards compat
 ENTRYPOINT ["docker-entrypoint.sh"]
 

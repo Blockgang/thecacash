@@ -5,8 +5,8 @@ services:
     build: ./db
     environment:
         MYSQL_ROOT_PASSWORD: 8drRNG8RWw9FjzeJuavbY6f9
-    volumes:
-      - thecadb:/var/lib/mysql
+        #    volumes:
+        #- thecadb:/var/lib/mysql
 
   memcache:
     build: ./memcache
@@ -26,5 +26,5 @@ services:
 volumes:
   thecaweb:
     external: true
-  thecadb:
-    external: true
+    #  thecadb:
+    #external: true
