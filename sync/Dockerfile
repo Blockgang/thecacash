@@ -1,3 +1,4 @@
-FROM alpine:latest
+FROM ubuntu:18.04
 
-CMD ["sh"]
+COPY blockchain_sync /tmp/
+CMD ["/tmp/blockchain_sync"]
