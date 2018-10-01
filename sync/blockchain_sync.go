@@ -124,11 +124,16 @@ func main() {
 
 		json.Unmarshal(body, &q)
 
+		var BlockHeight uint32
+
 		for i := range q.Confirmed {
 			TxId := q.Confirmed[i].Tx.H
 			txOuts := q.Confirmed[i].Out
 			BlockTimestamp := q.Confirmed[i].Blk.T
-			BlockHeight := q.Confirmed[i].Blk.I
+			BlockHeight = q.Confirmed[i].Blk.I
+			if BlockHeight > ScannerBlockHeight {
+				ScannerBlockHeight = BlockHeight + 1
+			}
 			var Prefix string
 			var Hash string
 			var Datatype string
@@ -141,9 +146,6 @@ func main() {
 					Title = txOuts[a].S4
 				}
 			}
-			if BlockHeight > ScannerBlockHeight {
-				ScannerBlockHeight = BlockHeight + 1
-			}
 
 			if len(Prefix) != 0 && len(Hash) > 20 && len(Datatype) > 2 {
 				insert := insertIntoMysql(TxId, Prefix, Hash, Datatype, Title, BlockTimestamp, BlockHeight)
@@ -154,6 +156,73 @@ func main() {
 				}
 			}
 		}
+
+		// unconfirmed transactions
+		var uc_query = `{
+			"v": 2,
+			"e": { "out.b1": "hex"  },
+			"q": {
+				"find": {
+					"out.b1": "e901",
+					"out.b0": {
+						"op": 106
+					}
+				},
+				"project": {
+					"out.b1": 1,
+					"out.s2": 1,
+					"out.s3": 1,
+					"out.s4": 1,
+					"tx.h": 1,
+					"_id": 0
+				}
+			}
+		}`
+
+		//url encoded query : blocksize greater than 550'000
+		b64_uc_query := base64.StdEncoding.EncodeToString([]byte(uc_query))
+		uc_url := "https://bitdb.network/q/" + b64_uc_query
+		uc_client := &http.Client{}
+		uc_req, _ := http.NewRequest("GET", uc_url, nil)
+		uc_req.Header.Set("key", "qz6qzfpttw44eqzqz8t2k26qxswhff79ng40pp2m44")
+
+		uc_res, _ := uc_client.Do(uc_req)
+
+		uc_body, err := ioutil.ReadAll(uc_res.Body)
+
+		if err != nil {
+			log.Fatalln(err)
+		}
+
+		json.Unmarshal(uc_body, &q)
+		for i := range q.Unconfirmed {
+			TxId := q.Unconfirmed[i].Tx.H
+			txOuts := q.Unconfirmed[i].Out
+			// BlockTimestamp := q.Unconfirmed[i].Blk.T
+			// BlockHeight := q.Unconfirmed[i].Blk.I
+			var Prefix string
+			var Hash string
+			var Datatype string
+			var Title string
+			for a := range txOuts {
+				if txOuts[a].B1 == "e901" {
+					Prefix = txOuts[a].B1
+					Hash = txOuts[a].S2
+					Datatype = txOuts[a].S3
+					Title = txOuts[a].S4
+				}
+			}
+
+			if len(Prefix) != 0 && len(Hash) > 20 && len(Datatype) > 2 {
+				insert := insertIntoMysql(TxId, Prefix, Hash, Datatype, Title, 0, 0)
+				if insert != true {
+					fmt.Println("2_Insert failed ! (error or duplicated db entry)")
+				} else {
+					fmt.Println("2_Insert OK")
+				}
+			}
+		}
+
 		time.Sleep(25 * time.Second)
 	}
 
