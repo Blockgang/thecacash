@@ -114,13 +114,9 @@ func main() {
 		req, _ := http.NewRequest("GET", url, nil)
 		req.Header.Set("key", "qz6qzfpttw44eqzqz8t2k26qxswhff79ng40pp2m44")
 
-		fmt.Println(req)
 		res, _ := client.Do(req)
-		fmt.Println(res)
 
 		body, err := ioutil.ReadAll(res.Body)
-		fmt.Println(body)
-		fmt.Println(err)
 
 		if err != nil {
 			log.Fatalln(err)
