@@ -44,7 +44,7 @@ func insertIntoMysql(TxId string, prefix string, hash string, data_type string, 
 	fmt.Println("==> ", blockheight, blocktimestamp, TxId, prefix, hash, data_type, title)
 	//Mysql
 	// db, err := sql.Open("mysql", "root:123456@tcp(127.0.0.1:3306)/theca")
-	db, err := sql.Open("mysql", "root:8drRNG8RWw9FjzeJuavbY6f9@tcp(172.18.0.5:3306)/theca")
+	db, err := sql.Open("mysql", "root:8drRNG8RWw9FjzeJuavbY6f9@tcp(192.168.11.2:3306)/theca")
 	if err != nil {
 		return false
 	}
@@ -62,6 +62,7 @@ func insertIntoMysql(TxId string, prefix string, hash string, data_type string, 
 }
 
 func main() {
+
 	var q Query
 	var ScannerBlockHeight uint32
 	var LastScannerBlockHeight uint32
@@ -113,9 +114,14 @@ func main() {
 		req, _ := http.NewRequest("GET", url, nil)
 		req.Header.Set("key", "qz6qzfpttw44eqzqz8t2k26qxswhff79ng40pp2m44")
 
+		fmt.Println(req)
 		res, _ := client.Do(req)
+		fmt.Println(res)
 
 		body, err := ioutil.ReadAll(res.Body)
+		fmt.Println(body)
+		fmt.Println(err)
+
 		if err != nil {
 			log.Fatalln(err)
 		}
@@ -152,7 +158,7 @@ func main() {
 				}
 			}
 		}
-		time.Sleep(5 * time.Second)
+		time.Sleep(25 * time.Second)
 	}
 
 }
