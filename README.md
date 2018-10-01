@@ -16,7 +16,7 @@ install docker-compose
 create data volumes
 ```
 docker volume create thecaweb
-docker volume create thecadb
+#docker volume create thecadb
 ```
 
 get & build containers
