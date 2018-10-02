@@ -4,7 +4,6 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
-	"log"
 	"net/http"
 
 	"github.com/bradfitz/gomemcache/memcache"
@@ -14,10 +13,18 @@ import (
 func main() {
 	router := mux.NewRouter()
 	//Response
-	router.HandleFunc("/meminfo", Getmeminfo).Methods("GET")
-	router.HandleFunc("/getmysql", Getmysql).Methods("GET")
-	log.Fatal(http.ListenAndServe(":8000", router))
+	router.HandleFunc("/", HomeHandler).Methods("GET")
+	router.HandleFunc("/tx/{txid:[a-fA-F0-9]{64}}", TransactionHandler).Methods("GET")
+	http.ListenAndServe(":8000", router)
 
+}
+
+func HomeHandler(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("accessed HomeHandler")
+}
+
+func TransactionHandler(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("accessed TransactionHandler")
 }
 
 func hasher(text string) string {
