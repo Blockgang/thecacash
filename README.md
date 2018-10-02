@@ -25,7 +25,7 @@ docker-compose down
 ```
 
 #### sync
-##### dependencies
+##### dependencies (for build)
 ```
  go get -u github.com/go-sql-driver/mysql
 ```
@@ -99,7 +99,7 @@ Create poll 	0x6d10 	poll_type(1), option_count(1), question(209) 	Implemented
 Add poll option 	0x6d13 	poll_txhash(30), option(184) 	Implemented 	
 Poll vote 	0x6d14 	poll_txhash(30), comment(184) 	Implemented 	
 Send money 	0x6d24 	message(217) 	Planned
-``` 
+```
 
 ## TODO
 
