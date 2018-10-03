@@ -40,28 +40,49 @@ type Id struct {
 	H string `json:"h"`
 }
 
-func insertIntoMysql(TxId string, prefix string, hash string, data_type string, title string, blocktimestamp uint32, blockheight uint32) bool {
-	fmt.Println("==> ", blockheight, blocktimestamp, TxId, prefix, hash, data_type, title)
-	//Mysql
-	// db, err := sql.Open("mysql", "root:123456@tcp(127.0.0.1:3306)/theca")
-	db, err := sql.Open("mysql", "root:8drRNG8RWw9FjzeJuavbY6f9@tcp(192.168.11.2:3306)/theca")
-	if err != nil {
-		return false
-	}
-	defer db.Close()
+var db *sql.DB
 
+func selectUnconfiremedMysql() ([]string, error) {
+	var uc_txs []string
+	sql_query_uc := "SELECT txid FROM opreturn WHERE blockheight = 0"
+	uc_query, err := db.Query(sql_query_uc)
+	if err != nil {
+		return uc_txs, err
+	}
+	defer uc_query.Close()
+
+	for uc_query.Next() {
+		var uc_txid string
+		err = uc_query.Scan(&uc_txid)
+		uc_txs = append(uc_txs, uc_txid)
+	}
+	return uc_txs, err
+}
+func updateMysql(TxId string, blocktimestamp uint32, blockheight uint32) error {
+	sql_update := "UPDATE opreturn SET blockheight=?,blocktimestamp=? where txid=?"
+	update, err := db.Prepare(sql_update)
+	defer update.Close()
+
+	_, err = update.Exec(blockheight, blocktimestamp, TxId)
+	return err
+}
+
+func insertIntoMysql(TxId string, prefix string, hash string, data_type string, title string, blocktimestamp uint32, blockheight uint32) error {
 	sql_query := "INSERT INTO opreturn VALUES(?,?,?,?,?,?,?)"
 	insert, err := db.Prepare(sql_query)
 	defer insert.Close()
 
 	_, err = insert.Query(TxId, prefix, hash, data_type, title, blocktimestamp, blockheight)
-	if err != nil {
-		return false
-	}
-	return true
+	return err
 }
 
 func main() {
+	var err error
+	db, err = sql.Open("mysql", "root:8drRNG8RWw9FjzeJuavbY6f9@tcp(192.168.11.2:3306)/theca")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
 
 	var q Query
 	var ScannerBlockHeight uint32
@@ -73,6 +94,9 @@ func main() {
 
 	loop := true
 	for loop {
+		//list of unconfirmed tx in db
+		unconfirmedInDb, err := selectUnconfiremedMysql()
+
 		var query = `{
 		  "v": 2,
 		  "e": { "out.b1": "hex"  },
@@ -148,11 +172,28 @@ func main() {
 			}
 
 			if len(Prefix) != 0 && len(Hash) > 20 && len(Datatype) > 2 {
-				insert := insertIntoMysql(TxId, Prefix, Hash, Datatype, Title, BlockTimestamp, BlockHeight)
-				if insert != true {
-					fmt.Println("Insert failed ! (error or duplicated db entry)")
+				exists := false
+				for i := range unconfirmedInDb {
+					uc_txid := unconfirmedInDb[i]
+					if uc_txid == TxId {
+						exists = true
+					}
+				}
+
+				if exists {
+					err := updateMysql(TxId, BlockTimestamp, BlockHeight)
+					if err != nil {
+						fmt.Println("UPDATE FAILED (confirmed) error")
+					} else {
+						fmt.Println("UPDATE OK (confirmed)==> ", TxId, Prefix, Hash, Datatype, Title, BlockTimestamp, BlockHeight)
+					}
 				} else {
-					fmt.Println("Insert OK")
+					err := insertIntoMysql(TxId, Prefix, Hash, Datatype, Title, BlockTimestamp, BlockHeight)
+					if err != nil {
+						fmt.Println("INSERT DUP / FAILED (confirmed) error or duplicated db entry")
+					} else {
+						fmt.Println("INSERT OK (confirmed)==> ", TxId, Prefix, Hash, Datatype, Title, BlockTimestamp, BlockHeight)
+					}
 				}
 			}
 		}
@@ -198,8 +239,6 @@ func main() {
 		for i := range q.Unconfirmed {
 			TxId := q.Unconfirmed[i].Tx.H
 			txOuts := q.Unconfirmed[i].Out
-			// BlockTimestamp := q.Unconfirmed[i].Blk.T
-			// BlockHeight := q.Unconfirmed[i].Blk.I
 			var Prefix string
 			var Hash string
 			var Datatype string
@@ -214,11 +253,20 @@ func main() {
 			}
 
 			if len(Prefix) != 0 && len(Hash) > 20 && len(Datatype) > 2 {
-				insert := insertIntoMysql(TxId, Prefix, Hash, Datatype, Title, 0, 0)
-				if insert != true {
-					fmt.Println("2_Insert failed ! (error or duplicated db entry)")
-				} else {
-					fmt.Println("2_Insert OK")
+				exists := false
+				for i := range unconfirmedInDb {
+					uc_txid := unconfirmedInDb[i]
+					if uc_txid == TxId {
+						exists = true
+					}
+				}
+				if !exists {
+					err := insertIntoMysql(TxId, Prefix, Hash, Datatype, Title, 0, 0)
+					if err != nil {
+						fmt.Println("INSERT FAILED (unconfirmed): error or duplicated db entry")
+					} else {
+						fmt.Println("INSERT OK (unconfirmed)==> ", TxId, Prefix, Hash, Datatype, Title)
+					}
 				}
 			}
 		}
