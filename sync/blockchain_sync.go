@@ -271,7 +271,7 @@ func main() {
 			}
 		}
 
-		time.Sleep(25 * time.Second)
+		time.Sleep(10 * time.Second)
 	}
 
 }
