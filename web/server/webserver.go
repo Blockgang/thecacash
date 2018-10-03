@@ -2,6 +2,7 @@ package main
 
 import (
 	"crypto/sha256"
+	"database/sql"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -23,17 +24,60 @@ type TodoPageData struct {
 	Todos     []Todo
 }
 
+var db *sql.DB
+
 func main() {
+	//MYSQL
+	var err error
+	db, err = sql.Open("mysql", "root:8drRNG8RWw9FjzeJuavbY6f9@tcp(192.168.12.2:3306)/theca")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
+
+	//Router
 	router := mux.NewRouter()
 	//Response
 	router.HandleFunc("/tx/{txid:[a-fA-F0-9]{64}}", TransactionHandler).Methods("GET")
-	router.HandleFunc("/template", templatehandler).Methods("GET")
+	router.HandleFunc("/template", templateHandler).Methods("GET")
+	router.HandleFunc("/api/positions", getPositions).Methods("GET")
 	router.PathPrefix("/").Handler(http.FileServer(http.Dir("./web/server/static")))
 	http.ListenAndServe(":8000", router)
 	log.Println("Listening...")
 }
 
-func templatehandler(w http.ResponseWriter, r *http.Request) {
+func getPositions(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("accessed getPositions")
+	// txList, err := selectFromMysql()
+	selectFromMysql()
+}
+
+func selectFromMysql() ([]string, error) {
+	var rows []string
+	sql_query := "SELECT txid,prefix,hash,type,title,blocktimestamp,blockheight FROM opreturn"
+	query, err := db.Query(sql_query)
+	if err != nil {
+		return rows, err
+	}
+	defer query.Close()
+
+	for query.Next() {
+		var txid string
+		var prefix string
+		var hash string
+		var dataType string
+		var title string
+		var blockTimestamp string
+		var blockHeight string
+
+		err = query.Scan(&txid, &prefix, &hash, &dataType, &title, &blockTimestamp, &blockHeight)
+		fmt.Println(txid, prefix, hash, dataType, title, blockTimestamp, blockHeight)
+		// rows = append(uc_txs, uc_txid)
+	}
+	return rows, err
+}
+
+func templateHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("accessed TemplateHandler")
 	data := TodoPageData{
 		PageTitle: "My list",
