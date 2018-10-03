@@ -6,22 +6,23 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"html/template"
 	"log"
 	"net/http"
 
 	"github.com/bradfitz/gomemcache/memcache"
 	"github.com/gorilla/mux"
+
+	_ "github.com/go-sql-driver/mysql"
 )
 
-type Todo struct {
-	Title string
-	Done  bool
-}
-
-type TodoPageData struct {
-	PageTitle string
-	Todos     []Todo
+type Tx struct {
+	Txid           string
+	Prefix         string
+	Link           string
+	DataType       string
+	Title          string
+	BlockTimestamp uint32
+	BlockHeight    uint32
 }
 
 var db *sql.DB
@@ -39,7 +40,6 @@ func main() {
 	router := mux.NewRouter()
 	//Response
 	router.HandleFunc("/tx/{txid:[a-fA-F0-9]{64}}", TransactionHandler).Methods("GET")
-	router.HandleFunc("/template", templateHandler).Methods("GET")
 	router.HandleFunc("/api/positions", getPositions).Methods("GET")
 	router.PathPrefix("/").Handler(http.FileServer(http.Dir("./web/server/static")))
 	http.ListenAndServe(":8000", router)
@@ -48,47 +48,51 @@ func main() {
 
 func getPositions(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("accessed getPositions")
-	// txList, err := selectFromMysql()
-	selectFromMysql()
+	txs, err := selectFromMysql()
+	if err != nil {
+		log.Fatal(err)
+	}
+	json.NewEncoder(w).Encode(txs)
 }
 
-func selectFromMysql() ([]string, error) {
-	var rows []string
+func selectFromMysql() ([]Tx, error) {
+	var txs []Tx
 	sql_query := "SELECT txid,prefix,hash,type,title,blocktimestamp,blockheight FROM opreturn"
 	query, err := db.Query(sql_query)
 	if err != nil {
-		return rows, err
+		return txs, err
 	}
 	defer query.Close()
 
 	for query.Next() {
 		var txid string
 		var prefix string
-		var hash string
+		var link string
 		var dataType string
 		var title string
-		var blockTimestamp string
-		var blockHeight string
+		var blockTimestamp uint32
+		var blockHeight uint32
 
-		err = query.Scan(&txid, &prefix, &hash, &dataType, &title, &blockTimestamp, &blockHeight)
-		fmt.Println(txid, prefix, hash, dataType, title, blockTimestamp, blockHeight)
-		// rows = append(uc_txs, uc_txid)
-	}
-	return rows, err
-}
+		err = query.Scan(
+			&txid,
+			&prefix,
+			&link,
+			&dataType,
+			&title,
+			&blockTimestamp,
+			&blockHeight)
 
-func templateHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("accessed TemplateHandler")
-	data := TodoPageData{
-		PageTitle: "My list",
-		Todos: []Todo{
-			{Title: "Task 1", Done: false},
-			{Title: "Task 2", Done: true},
-			{Title: "Task 3", Done: true},
-		},
+		txs = append(txs,
+			Tx{
+				Txid:           txid,
+				Prefix:         prefix,
+				Link:           link,
+				DataType:       dataType,
+				Title:          title,
+				BlockTimestamp: blockTimestamp,
+				BlockHeight:    blockHeight})
 	}
-	t, _ := template.ParseFiles("./web/server/templates/example.html")
-	t.Execute(w, data)
+	return txs, err
 }
 
 func TransactionHandler(w http.ResponseWriter, r *http.Request) {
