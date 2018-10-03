@@ -13,6 +13,16 @@ import (
 	"github.com/gorilla/mux"
 )
 
+type Todo struct {
+	Title string
+	Done  bool
+}
+
+type TodoPageData struct {
+	PageTitle string
+	Todos     []Todo
+}
+
 func main() {
 	router := mux.NewRouter()
 	//Response
@@ -23,15 +33,18 @@ func main() {
 	log.Println("Listening...")
 }
 
-type Person struct {
-	UserName string
-}
-
 func templatehandler(w http.ResponseWriter, r *http.Request) {
-	t := template.New("fieldname example")
-	t, _ = t.ParseFiles("./web/server/templates/example.html")
-	p := Person{UserName: "bluuub"}
-	t.Execute(w, p) // merge.
+	fmt.Println("accessed TemplateHandler")
+	data := TodoPageData{
+		PageTitle: "My list",
+		Todos: []Todo{
+			{Title: "Task 1", Done: false},
+			{Title: "Task 2", Done: true},
+			{Title: "Task 3", Done: true},
+		},
+	}
+	t, _ := template.ParseFiles("./web/server/templates/example.html")
+	t.Execute(w, data)
 }
 
 func TransactionHandler(w http.ResponseWriter, r *http.Request) {
