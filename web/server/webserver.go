@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"crypto/sha256"
 	"database/sql"
 	"encoding/hex"
@@ -48,51 +49,64 @@ func main() {
 
 func getPositions(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("accessed getPositions")
-	txs, err := selectFromMysql()
-	if err != nil {
-		log.Fatal(err)
-	}
+	txs := selectFromMysql()
 	json.NewEncoder(w).Encode(txs)
 }
 
-func selectFromMysql() ([]Tx, error) {
+func selectFromMysql() []Tx {
 	var txs []Tx
+	var err error
+	var cache *memcache.Item
+
 	sql_query := "SELECT txid,prefix,hash,type,title,blocktimestamp,blockheight FROM opreturn"
-	query, err := db.Query(sql_query)
+	cache_key := hasher(sql_query)
+	cache, err = get_cache(cache_key)
 	if err != nil {
-		return txs, err
+		query, err := db.Query(sql_query)
+		if err != nil {
+			return txs
+		}
+		defer query.Close()
+
+		for query.Next() {
+			var txid string
+			var prefix string
+			var link string
+			var dataType string
+			var title string
+			var blockTimestamp uint32
+			var blockHeight uint32
+
+			err = query.Scan(
+				&txid,
+				&prefix,
+				&link,
+				&dataType,
+				&title,
+				&blockTimestamp,
+				&blockHeight)
+
+			txs = append(txs,
+				Tx{
+					Txid:           txid,
+					Prefix:         prefix,
+					Link:           link,
+					DataType:       dataType,
+					Title:          title,
+					BlockTimestamp: blockTimestamp,
+					BlockHeight:    blockHeight})
+		}
+		cacheBytes := new(bytes.Buffer)
+		json.NewEncoder(cacheBytes).Encode(txs)
+		err = set_cache2(cache_key, cacheBytes.Bytes(), 5)
+		if err != nil {
+			fmt.Println("Set Cache Error:", err)
+		}
+	} else {
+		json.Unmarshal(cache.Value, &txs)
 	}
-	defer query.Close()
 
-	for query.Next() {
-		var txid string
-		var prefix string
-		var link string
-		var dataType string
-		var title string
-		var blockTimestamp uint32
-		var blockHeight uint32
-
-		err = query.Scan(
-			&txid,
-			&prefix,
-			&link,
-			&dataType,
-			&title,
-			&blockTimestamp,
-			&blockHeight)
-
-		txs = append(txs,
-			Tx{
-				Txid:           txid,
-				Prefix:         prefix,
-				Link:           link,
-				DataType:       dataType,
-				Title:          title,
-				BlockTimestamp: blockTimestamp,
-				BlockHeight:    blockHeight})
-	}
-	return txs, err
+	return txs
 }
 
 func TransactionHandler(w http.ResponseWriter, r *http.Request) {
@@ -130,5 +144,12 @@ func set_cache(key string, value string, expiretime int32) error {
 	fmt.Println("set key:", key)
 	mc := memcache.New("192.168.12.3:11211")
 	err := mc.Set(&memcache.Item{Key: key, Value: []byte(value), Expiration: expiretime})
+	return err
+}
+
+func set_cache2(key string, value []byte, expiretime int32) error {
+	fmt.Println("set key:", key)
+	mc := memcache.New("192.168.12.3:11211")
+	err := mc.Set(&memcache.Item{Key: key, Value: value, Expiration: expiretime})
 	return err
 }
