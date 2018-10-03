@@ -30,6 +30,13 @@ docker-compose down
  go get -u github.com/go-sql-driver/mysql
 ```
 
+#### web
+##### dependencies (for build)
+```
+go get github.com/bradfitz/gomemcache/memcache
+go get github.com/gorilla/mux
+```
+
 ## Links?
 * https://blockgang.github.io/chaintube
 * https://instant.io/
