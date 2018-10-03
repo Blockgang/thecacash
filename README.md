@@ -7,7 +7,7 @@ Media plattform based on Bitcoin Cash (OP_RETURN)
 get & build containers
 ```
 git clone https://github.com/Blockgang/theca.cash.git
-docker network create --subnet 192.168.11.0/24 --gateway 192.168.11.254 thecanet
+docker network create --subnet 192.168.12.0/24 --gateway 192.168.12.254 thecanet
 docker-compose build
 ```
 start in daemon mode

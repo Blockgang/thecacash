@@ -7,13 +7,13 @@ services:
         MYSQL_ROOT_PASSWORD: 8drRNG8RWw9FjzeJuavbY6f9
     networks:
       thecanet:
-        ipv4_address: 192.168.11.2
+        ipv4_address: 192.168.12.2
 
   memcache:
     build: ./memcache
     networks:
       thecanet:
-        ipv4_address: 192.168.11.3
+        ipv4_address: 192.168.12.3
 
   sync:
     build: ./sync 
@@ -23,7 +23,7 @@ services:
         #tty: true
     networks:
       thecanet:
-        ipv4_address: 192.168.11.4
+        ipv4_address: 192.168.12.4
 
   web:
     build: ./web
@@ -33,7 +33,7 @@ services:
       - "127.0.0.1:80:80"
     networks:
       thecanet:
-        ipv4_address: 192.168.11.5
+        ipv4_address: 192.168.12.5
 
 networks:
   thecanet:

@@ -73,14 +73,14 @@ func hasher(text string) string {
 }
 
 func get_cache(key string) (*memcache.Item, error) {
-	mc := memcache.New("192.168.11.3:11211")
+	mc := memcache.New("192.168.12.3:11211")
 	val, err := mc.Get(key)
 	return val, err
 }
 
 func set_cache(key string, value string, expiretime int32) error {
 	fmt.Println("set key:", key)
-	mc := memcache.New("192.168.11.3:11211")
+	mc := memcache.New("192.168.12.3:11211")
 	err := mc.Set(&memcache.Item{Key: key, Value: []byte(value), Expiration: expiretime})
 	return err
 }

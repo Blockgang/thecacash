@@ -78,7 +78,7 @@ func insertIntoMysql(TxId string, prefix string, hash string, data_type string, 
 
 func main() {
 	var err error
-	db, err = sql.Open("mysql", "root:8drRNG8RWw9FjzeJuavbY6f9@tcp(192.168.11.2:3306)/theca")
+	db, err = sql.Open("mysql", "root:8drRNG8RWw9FjzeJuavbY6f9@tcp(192.168.12.2:3306)/theca")
 	if err != nil {
 		log.Fatal(err)
 	}
