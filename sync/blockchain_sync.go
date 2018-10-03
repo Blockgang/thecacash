@@ -87,7 +87,7 @@ func main() {
 	var q Query
 	var ScannerBlockHeight uint32
 	var LastScannerBlockHeight uint32
-	ScannerBlockHeight = 550000
+	ScannerBlockHeight = 550255
 	LastScannerBlockHeight = 0
 
 	fmt.Println("Start ScannerBlockHeight: >", ScannerBlockHeight)
