@@ -44,7 +44,7 @@ var db *sql.DB
 
 func selectUnconfiremedMysql() ([]string, error) {
 	var uc_txs []string
-	sql_query_uc := "SELECT txid FROM 'prefix_0xe901' WHERE blockheight = 0"
+	sql_query_uc := "SELECT txid FROM opreturn WHERE blockheight = 0"
 	uc_query, err := db.Query(sql_query_uc)
 	if err != nil {
 		return uc_txs, err
@@ -59,7 +59,7 @@ func selectUnconfiremedMysql() ([]string, error) {
 	return uc_txs, err
 }
 func updateMysql(TxId string, blocktimestamp uint32, blockheight uint32) error {
-	sql_update := "UPDATE 'prefix_0xe901' SET blockheight=?,blocktimestamp=? where txid=?"
+	sql_update := "UPDATE opreturn SET blockheight=?,blocktimestamp=? where txid=?"
 	update, err := db.Prepare(sql_update)
 	defer update.Close()
 
@@ -68,7 +68,7 @@ func updateMysql(TxId string, blocktimestamp uint32, blockheight uint32) error {
 }
 
 func insertIntoMysql(TxId string, prefix string, hash string, data_type string, title string, blocktimestamp uint32, blockheight uint32) error {
-	sql_query := "INSERT INTO 'prefix_0xe901' VALUES(?,?,?,?,?,?,?)"
+	sql_query := "INSERT INTO opreturn VALUES(?,?,?,?,?,?,?)"
 	insert, err := db.Prepare(sql_query)
 	defer insert.Close()
 	_, err = insert.Query(TxId, prefix, hash, data_type, title, blocktimestamp, blockheight)

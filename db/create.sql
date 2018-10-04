@@ -2,7 +2,7 @@ CREATE DATABASE `theca`;
 
 USE theca;
 
-CREATE TABLE `prefix_0xe901` (
+CREATE TABLE `opreturn` (
   `txid` varchar(64) NOT NULL,
   `prefix` varchar(4) NOT NULL,
   `hash` varchar(255) NOT NULL,
