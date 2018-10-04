@@ -2,7 +2,7 @@ CREATE DATABASE `theca`;
 
 USE theca;
 
-CREATE TABLE `opreturn` (
+CREATE TABLE `e901` (
   `txid` varchar(64) NOT NULL,
   `prefix` varchar(4) NOT NULL,
   `hash` varchar(255) NOT NULL,
@@ -13,6 +13,7 @@ CREATE TABLE `opreturn` (
   `sender` varchar(60) NOT NULL,
   PRIMARY KEY (`txid`)
 );
+
 
 CREATE TABLE `theca`.`users` (
   `username` VARCHAR(255) NOT NULL,
