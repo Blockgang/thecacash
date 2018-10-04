@@ -27,11 +27,17 @@ docker-compose down
 
 ## API Access
 ### GET ###
+Get Transaction Infos
 ```
+http://127.0.0.1:8000/api/tx/{txid}
 http://127.0.0.1:8000/api/tx/569be470b326e50afbbc739531ea428b5c6977fd900091e3a8faeaf90b85140b
+```
+Get All Transactions
+```
 http://127.0.0.1:8000/api/positions
 ```
-### PSOT ###
+### POST ###
+Post Login Data, returns (bool,encrypted_key)
 ```
 http://127.0.0.1:8000/api/login
 ==>POST-Header: "Content-Type: application/json"
