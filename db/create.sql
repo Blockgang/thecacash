@@ -13,3 +13,9 @@ CREATE TABLE `opreturn` (
   `sender` varchar(60) NOT NULL,
   PRIMARY KEY (`txid`)
 );
+
+CREATE TABLE `theca`.`users` (
+  `username` VARCHAR(255) NOT NULL,
+  `password` VARCHAR(255) NOT NULL,
+  `encrypted_pk` TEXT NOT NULL,
+  PRIMARY KEY (`username`));
