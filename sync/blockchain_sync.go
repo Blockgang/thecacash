@@ -82,7 +82,6 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println(db)
 	defer db.Close()
 
 	var q Query
