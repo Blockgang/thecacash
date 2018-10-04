@@ -54,7 +54,7 @@ func main() {
 
 func getPositions(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("accessed getPositions")
-	txs, err := selectFromMysql()
+	txs, err := getPositionsFromBackend()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -62,7 +62,7 @@ func getPositions(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(txs)
 }
 
-func selectFromMysql() ([]Tx, error) {
+func getPositionsFromBackend() ([]Tx, error) {
 	var txs []Tx
 	var errCache error
 	var err error
