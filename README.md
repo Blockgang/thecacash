@@ -37,11 +37,14 @@ Get All Transactions
 http://127.0.0.1:8000/api/positions
 ```
 ### POST ###
-Post Login Data, returns (bool,encrypted_key)
+Post Login Data, returns: bool,encrypted_key)
 ```
 http://127.0.0.1:8000/api/login
 ==>POST-Header: "Content-Type: application/json"
 ==>POST-Body: {"Username":"user1","PasswordHash":"569be470b326e50afbbc739531ea428b5c6"}
+
+==>Response Login failed: {"Username":"test","EncryptedPk":"","Login":false}
+==>Response Login OK: {"Username":"test","EncryptedPk":"abcsecret","Login":true}
 ```
 #### sync
 ##### dependencies (for build)

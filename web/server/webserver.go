@@ -78,19 +78,68 @@ type LoginPost struct {
 	PasswordHash string
 }
 
+type LoginResponse struct {
+	Username    string
+	EncryptedPk string
+	Login       bool
+}
+
 func postLogin(w http.ResponseWriter, r *http.Request) {
 	var loginPost LoginPost
-	login := false
+	var login bool
 
 	decoder := json.NewDecoder(r.Body)
 	decoder.Decode(&loginPost)
-	fmt.Println(loginPost)
 	log.Printf("Login accessed: %s %s", loginPost.Username, loginPost.PasswordHash)
-	//if
-	login = true
+	encryptedKey, err := check_login(loginPost.Username, loginPost.PasswordHash)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if len(encryptedKey) > 0 {
+		fmt.Println(encryptedKey, err)
+		login = true
+	} else {
+		login = false
+	}
+
+	res := LoginResponse{
+		Username:    loginPost.Username,
+		EncryptedPk: encryptedKey,
+		Login:       login}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(login)
+	json.NewEncoder(w).Encode(res)
+}
+
+func check_login(userName string, passwordHash string) (string, error) {
+	var errCache error
+	var err error
+	var cache *memcache.Item
+	var encryptedKey string
+
+	sql_query := fmt.Sprintf("SELECT encrypted_pk FROM users WHERE username='%s' AND password='%s'", userName, passwordHash)
+	cache_key := hasher(sql_query)
+	cache, errCache = get_cache(cache_key)
+	if errCache != nil {
+		query, err := db.Query(sql_query)
+		if err != nil {
+			return encryptedKey, err
+		}
+		defer query.Close()
+
+		for query.Next() {
+			err = query.Scan(&encryptedKey)
+		}
+		cacheBytes := new(bytes.Buffer)
+		json.NewEncoder(cacheBytes).Encode(encryptedKey)
+		err = set_cache2(cache_key, cacheBytes.Bytes(), 5)
+		if err != nil {
+			fmt.Println("Set Cache Error:", err)
+		}
+	} else {
+		json.Unmarshal(cache.Value, &encryptedKey)
+	}
+	return encryptedKey, err
 }
 
 func getPositions(w http.ResponseWriter, r *http.Request) {
