@@ -95,7 +95,7 @@ func getPositionsFromBackend() ([]Tx, error) {
 	var err error
 	var cache *memcache.Item
 
-	sql_query := "SELECT txid,prefix,hash,type,title,blocktimestamp,blockheight FROM opreturn"
+	sql_query := "SELECT txid,prefix,hash,type,title,blocktimestamp,blockheight FROM prefix_0xe901"
 	cache_key := hasher(sql_query)
 	cache, errCache = get_cache(cache_key)
 	if errCache != nil {
@@ -152,7 +152,7 @@ func selectFromMysql2() ([]Tx, error) {
 	var err error
 	var cache *memcache.Item
 
-	sql_query := "SELECT txid,prefix,hash,type,title,blocktimestamp,blockheight FROM opreturn"
+	sql_query := "SELECT txid,prefix,hash,type,title,blocktimestamp,blockheight FROM prefix_0xe901"
 	cache_key := hasher(sql_query)
 	cache, errCache = get_cache(cache_key)
 	if errCache != nil {

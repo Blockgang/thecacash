@@ -44,7 +44,7 @@ var db *sql.DB
 
 func selectUnconfiremedMysql() ([]string, error) {
 	var uc_txs []string
-	sql_query_uc := "SELECT txid FROM opreturn WHERE blockheight = 0"
+	sql_query_uc := "SELECT txid FROM prefix_0xe901 WHERE blockheight = 0"
 	uc_query, err := db.Query(sql_query_uc)
 	if err != nil {
 		return uc_txs, err
@@ -59,7 +59,7 @@ func selectUnconfiremedMysql() ([]string, error) {
 	return uc_txs, err
 }
 func updateMysql(TxId string, blocktimestamp uint32, blockheight uint32) error {
-	sql_update := "UPDATE opreturn SET blockheight=?,blocktimestamp=? where txid=?"
+	sql_update := "UPDATE prefix_0xe901 SET blockheight=?,blocktimestamp=? where txid=?"
 	update, err := db.Prepare(sql_update)
 	defer update.Close()
 
@@ -67,16 +67,16 @@ func updateMysql(TxId string, blocktimestamp uint32, blockheight uint32) error {
 	return err
 }
 
-func insertIntoMysql(TxId string, prefix string, hash string, data_type string, title string, blocktimestamp uint32, blockheight uint32) error {
-	sql_query := "INSERT INTO opreturn VALUES(?,?,?,?,?,?,?)"
+func insertIntoMysql(TxId string, prefix string, hash string, data_type string, title string, blocktimestamp uint32, blockheight uint32, sender string) error {
+	sql_query := "INSERT INTO prefix_0xe901 VALUES(?,?,?,?,?,?,?,?)"
 	insert, err := db.Prepare(sql_query)
 	defer insert.Close()
-	_, err = insert.Query(TxId, prefix, hash, data_type, title, blocktimestamp, blockheight)
+	_, err = insert.Query(TxId, prefix, hash, data_type, title, blocktimestamp, blockheight, sender)
 	return err
 }
 
 func main() {
-	time.Sleep(10 * time.Second)
+	time.Sleep(1 * time.Second)
 	var err error
 	db, err = sql.Open("mysql", "root:8drRNG8RWw9FjzeJuavbY6f9@tcp(192.168.12.2:3306)/theca")
 	if err != nil {
@@ -188,7 +188,8 @@ func main() {
 						fmt.Println("UPDATE OK (confirmed)==> ", TxId, Prefix, Hash, Datatype, Title, BlockTimestamp, BlockHeight)
 					}
 				} else {
-					err := insertIntoMysql(TxId, Prefix, Hash, Datatype, Title, BlockTimestamp, BlockHeight)
+					Sender := ""
+					err := insertIntoMysql(TxId, Prefix, Hash, Datatype, Title, BlockTimestamp, BlockHeight, Sender)
 					if err != nil {
 						fmt.Println("INSERT DUP / FAILED (confirmed) error or duplicated db entry")
 					} else {
@@ -261,7 +262,8 @@ func main() {
 					}
 				}
 				if !exists {
-					err := insertIntoMysql(TxId, Prefix, Hash, Datatype, Title, 0, 0)
+					Sender := ""
+					err := insertIntoMysql(TxId, Prefix, Hash, Datatype, Title, 0, 0, Sender)
 					if err != nil {
 						fmt.Println("INSERT FAILED (unconfirmed): error or duplicated db entry")
 					} else {
