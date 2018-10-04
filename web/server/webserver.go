@@ -12,6 +12,7 @@ import (
 
 	"github.com/bradfitz/gomemcache/memcache"
 	"github.com/gorilla/mux"
+	"github.com/junhsieh/goexamples/fieldbinding/fieldbinding"
 
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -53,23 +54,27 @@ func main() {
 
 func getPositions(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("accessed getPositions")
-	txs := selectFromMysql()
+	txs, err := selectFromMysql()
+	if err != nil {
+		log.Fatal(err)
+	}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(txs)
 }
 
-func selectFromMysql() []Tx {
+func selectFromMysql() ([]Tx, error) {
 	var txs []Tx
+	var errCache error
 	var err error
 	var cache *memcache.Item
 
 	sql_query := "SELECT txid,prefix,hash,type,title,blocktimestamp,blockheight FROM opreturn"
 	cache_key := hasher(sql_query)
-	cache, err = get_cache(cache_key)
-	if err != nil {
+	cache, errCache = get_cache(cache_key)
+	if errCache != nil {
 		query, err := db.Query(sql_query)
 		if err != nil {
-			return txs
+			return nil, err
 		}
 		defer query.Close()
 
@@ -111,7 +116,54 @@ func selectFromMysql() []Tx {
 		json.Unmarshal(cache.Value, &txs)
 	}
 
-	return txs
+	return txs, err
+}
+
+func selectFromMysql2() ([]Tx, error) {
+	var txs []Tx
+	var errCache error
+	var err error
+	var cache *memcache.Item
+
+	sql_query := "SELECT txid,prefix,hash,type,title,blocktimestamp,blockheight FROM opreturn"
+	cache_key := hasher(sql_query)
+	cache, errCache = get_cache(cache_key)
+	if errCache != nil {
+		query, err := db.Query(sql_query)
+		if err != nil {
+			return nil, err
+		}
+		defer query.Close()
+
+		var fArr []string
+		fb := fieldbinding.NewFieldBinding()
+		fArr, err = query.Columns()
+		if err != nil {
+			return nil, err
+		}
+		fb.PutFields(fArr)
+
+		outArr := []interface{}{}
+
+		for query.Next() {
+			err := query.Scan(fb.GetFieldPtrArr()...)
+			if err != nil {
+				return nil, err
+			}
+			outArr = append(outArr, fb.GetFieldArr())
+		}
+
+		cacheBytes := new(bytes.Buffer)
+		json.NewEncoder(cacheBytes).Encode(outArr)
+		err = set_cache2(cache_key, cacheBytes.Bytes(), 5)
+		if err != nil {
+			fmt.Println("Set Cache Error:", err)
+		}
+	} else {
+		json.Unmarshal(cache.Value, &txs)
+	}
+
+	return txs, err
 }
 
 func TransactionHandler(w http.ResponseWriter, r *http.Request) {
