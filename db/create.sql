@@ -10,7 +10,7 @@ CREATE TABLE `opreturn` (
   `title` varchar(255) NOT NULL,
   `blocktimestamp` int(11) DEFAULT 0,
   `blockheight` int(11) DEFAULT 0,
-  `sender` varchar(60) NOT NULL,
+  `sender` varchar(60) DEFAULT 0,
   PRIMARY KEY (`txid`)
 );
 
