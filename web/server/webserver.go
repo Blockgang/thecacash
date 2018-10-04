@@ -25,6 +25,7 @@ type Tx struct {
 	Title          string
 	BlockTimestamp uint32
 	BlockHeight    uint32
+	Sender         string
 }
 
 var db *sql.DB
@@ -95,7 +96,7 @@ func getPositionsFromBackend() ([]Tx, error) {
 	var err error
 	var cache *memcache.Item
 
-	sql_query := "SELECT txid,prefix,hash,type,title,blocktimestamp,blockheight FROM prefix_0xe901"
+	sql_query := "SELECT txid,prefix,hash,type,title,blocktimestamp,blockheight,sender FROM prefix_0xe901"
 	cache_key := hasher(sql_query)
 	cache, errCache = get_cache(cache_key)
 	if errCache != nil {
@@ -113,6 +114,7 @@ func getPositionsFromBackend() ([]Tx, error) {
 			var title string
 			var blockTimestamp uint32
 			var blockHeight uint32
+			var sender string
 
 			err = query.Scan(
 				&txid,
@@ -121,7 +123,8 @@ func getPositionsFromBackend() ([]Tx, error) {
 				&dataType,
 				&title,
 				&blockTimestamp,
-				&blockHeight)
+				&blockHeight,
+				&sender)
 
 			txs = append(txs,
 				Tx{
@@ -131,7 +134,8 @@ func getPositionsFromBackend() ([]Tx, error) {
 					DataType:       dataType,
 					Title:          title,
 					BlockTimestamp: blockTimestamp,
-					BlockHeight:    blockHeight})
+					BlockHeight:    blockHeight,
+					Sender:         sender})
 		}
 		cacheBytes := new(bytes.Buffer)
 		json.NewEncoder(cacheBytes).Encode(txs)
@@ -152,7 +156,7 @@ func selectFromMysql2() ([]Tx, error) {
 	var err error
 	var cache *memcache.Item
 
-	sql_query := "SELECT txid,prefix,hash,type,title,blocktimestamp,blockheight FROM prefix_0xe901"
+	sql_query := "SELECT txid,prefix,hash,type,title,blocktimestamp,blockheight,sender FROM prefix_0xe901"
 	cache_key := hasher(sql_query)
 	cache, errCache = get_cache(cache_key)
 	if errCache != nil {
