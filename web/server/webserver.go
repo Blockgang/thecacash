@@ -27,8 +27,12 @@ type Tx struct {
 }
 
 var db *sql.DB
+var mc *memcache.Client
 
 func main() {
+	//MEMCACHED
+	mc = memcache.New("192.168.12.3:11211")
+
 	//MYSQL
 	var err error
 	db, err = sql.Open("mysql", "root:8drRNG8RWw9FjzeJuavbY6f9@tcp(192.168.12.2:3306)/theca")
@@ -135,21 +139,18 @@ func hasher(text string) string {
 }
 
 func get_cache(key string) (*memcache.Item, error) {
-	mc := memcache.New("192.168.12.3:11211")
 	val, err := mc.Get(key)
 	return val, err
 }
 
 func set_cache(key string, value string, expiretime int32) error {
 	fmt.Println("set key:", key)
-	mc := memcache.New("192.168.12.3:11211")
 	err := mc.Set(&memcache.Item{Key: key, Value: []byte(value), Expiration: expiretime})
 	return err
 }
 
 func set_cache2(key string, value []byte, expiretime int32) error {
 	fmt.Println("set key:", key)
-	mc := memcache.New("192.168.12.3:11211")
 	err := mc.Set(&memcache.Item{Key: key, Value: value, Expiration: expiretime})
 	return err
 }
