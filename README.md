@@ -45,6 +45,9 @@ http://127.0.0.1:8000/api/login
 
 ==>Response Login failed: {"Username":"test","EncryptedPk":"","Login":false}
 ==>Response Login OK: {"Username":"test","EncryptedPk":"abcsecret","Login":true}
+
+Examlpe curl:
+curl -X POST -H 'Content-Type: application/json' -i 'http://127.0.0.1:8000/api/login' --data '{"Username":"test","PasswordHash":"test"}'
 ```
 #### sync
 ##### dependencies (for build)
