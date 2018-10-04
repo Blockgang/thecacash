@@ -49,6 +49,7 @@ http://127.0.0.1:8000/api/login
 Examlpe curl:
 curl -X POST -H 'Content-Type: application/json' -i 'http://127.0.0.1:8000/api/login' --data '{"Username":"test","PasswordHash":"test"}'
 ```
+## Dependencies
 #### sync
 ##### dependencies (for build)
 ```
