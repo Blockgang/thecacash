@@ -24,6 +24,19 @@ stop dockers
 docker-compose down
 ```
 
+
+## API Access
+### GET ###
+```
+http://127.0.0.1:8000/api/tx/569be470b326e50afbbc739531ea428b5c6977fd900091e3a8faeaf90b85140b
+http://127.0.0.1:8000/api/positions
+```
+### PSOT ###
+```
+http://127.0.0.1:8000/api/login
+==>POST-Header: "Content-Type: application/json"
+==>POST-Body: {"Username":"user1","PasswordHash":"569be470b326e50afbbc739531ea428b5c6"}
+```
 #### sync
 ##### dependencies (for build)
 ```

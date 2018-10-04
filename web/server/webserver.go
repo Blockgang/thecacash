@@ -47,12 +47,12 @@ func main() {
 	router := mux.NewRouter()
 
 	//Response
-	router.HandleFunc("/tx/{txid:[a-fA-F0-9]{64}}", TransactionHandler).
-		Methods("GET")
 	router.HandleFunc("/api/positions", getPositions).
 		Methods("GET")
-	router.HandleFunc("/api/login", getlogin).
+	router.HandleFunc("/api/login", postLogin).
 		Methods("POST")
+	router.HandleFunc("/api/tx/{txid:[a-fA-F0-9]{64}}", getTransactionData).
+		Methods("GET")
 
 	// Static
 	router.PathPrefix("/").Handler(http.FileServer(http.Dir("./web/web")))
@@ -61,17 +61,30 @@ func main() {
 	log.Println("Listening...")
 }
 
+func getTransactionData(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	txid := vars["txid"]
+	fmt.Println("accessed getTransactionData", txid)
+	txData, err := getTransactionDataFromBackend(txid)
+	if err != nil {
+		log.Fatal(err)
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(txData)
+}
+
 type LoginPost struct {
 	Username     string
 	PasswordHash string
 }
 
-func getlogin(w http.ResponseWriter, r *http.Request) {
+func postLogin(w http.ResponseWriter, r *http.Request) {
 	var loginPost LoginPost
 	login := false
 
 	decoder := json.NewDecoder(r.Body)
 	decoder.Decode(&loginPost)
+	fmt.Println(loginPost)
 	log.Printf("Login accessed: %s %s", loginPost.Username, loginPost.PasswordHash)
 	//if
 	login = true
@@ -88,6 +101,65 @@ func getPositions(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(txs)
+}
+
+func getTransactionDataFromBackend(txid string) (Tx, error) {
+	var tx Tx
+	var errCache error
+	var err error
+	var cache *memcache.Item
+
+	sql_query := fmt.Sprintf("SELECT txid,prefix,hash,type,title,blocktimestamp,blockheight,sender FROM prefix_0xe901 WHERE txid='%s'", txid)
+	fmt.Println(sql_query)
+	cache_key := hasher(sql_query)
+	cache, errCache = get_cache(cache_key)
+	if errCache != nil {
+		query, err := db.Query(sql_query)
+		if err != nil {
+			return tx, err
+		}
+		defer query.Close()
+
+		for query.Next() {
+			var txid string
+			var prefix string
+			var link string
+			var dataType string
+			var title string
+			var blockTimestamp uint32
+			var blockHeight uint32
+			var sender string
+
+			err = query.Scan(
+				&txid,
+				&prefix,
+				&link,
+				&dataType,
+				&title,
+				&blockTimestamp,
+				&blockHeight,
+				&sender)
+
+			tx = Tx{
+				Txid:           txid,
+				Prefix:         prefix,
+				Link:           link,
+				DataType:       dataType,
+				Title:          title,
+				BlockTimestamp: blockTimestamp,
+				BlockHeight:    blockHeight,
+				Sender:         sender}
+		}
+		cacheBytes := new(bytes.Buffer)
+		json.NewEncoder(cacheBytes).Encode(tx)
+		err = set_cache2(cache_key, cacheBytes.Bytes(), 5)
+		if err != nil {
+			fmt.Println("Set Cache Error:", err)
+		}
+	} else {
+		json.Unmarshal(cache.Value, &tx)
+	}
+	return tx, err
 }
 
 func getPositionsFromBackend() ([]Tx, error) {
@@ -195,26 +267,6 @@ func selectFromMysql2() ([]Tx, error) {
 	}
 
 	return txs, err
-}
-
-func TransactionHandler(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	txid := vars["txid"]
-	cache_val := ""
-	fmt.Println("accessed TransactionHandler")
-
-	cache, err := get_cache(txid)
-	if err != nil {
-		cache_val = string(txid)
-		if set_cache(txid, cache_val, 10) != nil {
-			fmt.Println("Set Cache Error:", err)
-		}
-	} else {
-		cache_val = string(cache.Value)
-	}
-	fmt.Println("Cache Value:", cache_val)
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(cache_val)
 }
 
 func hasher(text string) string {
