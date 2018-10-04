@@ -19,16 +19,25 @@ type Query struct {
 }
 
 type Transaction struct {
-	Tx  Id    `json:"tx"`
-	Out []Sub `json:"out"`
-	Blk Info  `json:"blk"`
+	Tx  Id       `json:"tx"`
+	Out []OutSub `json:"out"`
+	In  []InSub  `json:"in"`
+	Blk Info     `json:"blk"`
 }
 
-type Sub struct {
+type OutSub struct {
 	B1 string `json:"b1"`
 	S2 string `json:"s2"`
 	S3 string `json:"s3"`
 	S4 string `json:"s4"`
+}
+
+type InSub struct {
+	E Sender `json:"e"`
+}
+
+type Sender struct {
+	A string `json:"a"`
 }
 
 type Info struct {
@@ -76,7 +85,7 @@ func insertIntoMysql(TxId string, prefix string, hash string, data_type string, 
 }
 
 func main() {
-	time.Sleep(10 * time.Second)
+	time.Sleep(1 * time.Second)
 	var err error
 	db, err = sql.Open("mysql", "root:8drRNG8RWw9FjzeJuavbY6f9@tcp(192.168.12.2:3306)/theca")
 	if err != nil {
@@ -119,6 +128,7 @@ func main() {
 		      "tx.h": 1,
 					"blk.t": 1,
 					"blk.i": 1,
+					"in.e.a":1,
 		      "_id": 0
 		    }
 		  }
@@ -151,6 +161,7 @@ func main() {
 		var BlockHeight uint32
 
 		for i := range q.Confirmed {
+			Sender := q.Confirmed[i].In[0].E.A
 			TxId := q.Confirmed[i].Tx.H
 			txOuts := q.Confirmed[i].Out
 			BlockTimestamp := q.Confirmed[i].Blk.T
@@ -188,7 +199,6 @@ func main() {
 						fmt.Println("UPDATE OK (confirmed)==> ", TxId, Prefix, Hash, Datatype, Title, BlockTimestamp, BlockHeight)
 					}
 				} else {
-					Sender := ""
 					err := insertIntoMysql(TxId, Prefix, Hash, Datatype, Title, BlockTimestamp, BlockHeight, Sender)
 					if err != nil {
 						fmt.Println("INSERT DUP / FAILED (confirmed) error or duplicated db entry")
@@ -216,6 +226,7 @@ func main() {
 					"out.s3": 1,
 					"out.s4": 1,
 					"tx.h": 1,
+					"in.e.a":1,
 					"_id": 0
 				}
 			}
@@ -238,6 +249,7 @@ func main() {
 
 		json.Unmarshal(uc_body, &q)
 		for i := range q.Unconfirmed {
+			Sender := q.Confirmed[i].In[0].E.A
 			TxId := q.Unconfirmed[i].Tx.H
 			txOuts := q.Unconfirmed[i].Out
 			var Prefix string
@@ -262,7 +274,6 @@ func main() {
 					}
 				}
 				if !exists {
-					Sender := ""
 					err := insertIntoMysql(TxId, Prefix, Hash, Datatype, Title, 0, 0, Sender)
 					if err != nil {
 						fmt.Println("INSERT FAILED (unconfirmed): error or duplicated db entry")
