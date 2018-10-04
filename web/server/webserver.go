@@ -46,7 +46,7 @@ func main() {
 	//Response
 	router.HandleFunc("/tx/{txid:[a-fA-F0-9]{64}}", TransactionHandler).Methods("GET")
 	router.HandleFunc("/api/positions", getPositions).Methods("GET")
-	router.PathPrefix("/").Handler(http.FileServer(http.Dir("./web/server/static")))
+	router.PathPrefix("/").Handler(http.FileServer(http.Dir("./web/web")))
 	http.ListenAndServe(":8000", router)
 	log.Println("Listening...")
 }
@@ -54,6 +54,7 @@ func main() {
 func getPositions(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("accessed getPositions")
 	txs := selectFromMysql()
+	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(txs)
 }
 
@@ -129,6 +130,7 @@ func TransactionHandler(w http.ResponseWriter, r *http.Request) {
 		cache_val = string(cache.Value)
 	}
 	fmt.Println("Cache Value:", cache_val)
+	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(cache_val)
 }
 
