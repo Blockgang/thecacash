@@ -44,12 +44,39 @@ func main() {
 
 	//Router
 	router := mux.NewRouter()
+
 	//Response
-	router.HandleFunc("/tx/{txid:[a-fA-F0-9]{64}}", TransactionHandler).Methods("GET")
-	router.HandleFunc("/api/positions", getPositions).Methods("GET")
+	router.HandleFunc("/tx/{txid:[a-fA-F0-9]{64}}", TransactionHandler).
+		Methods("GET")
+	router.HandleFunc("/api/positions", getPositions).
+		Methods("GET")
+	router.HandleFunc("/api/login", getlogin).
+		Methods("POST")
+
+	// Static
 	router.PathPrefix("/").Handler(http.FileServer(http.Dir("./web/web")))
+
 	http.ListenAndServe(":8000", router)
 	log.Println("Listening...")
+}
+
+type LoginPost struct {
+	Username     string
+	PasswordHash string
+}
+
+func getlogin(w http.ResponseWriter, r *http.Request) {
+	var loginPost LoginPost
+	login := false
+
+	decoder := json.NewDecoder(r.Body)
+	decoder.Decode(&loginPost)
+	log.Printf("Login accessed: %s %s", loginPost.Username, loginPost.PasswordHash)
+	//if
+	login = true
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(login)
 }
 
 func getPositions(w http.ResponseWriter, r *http.Request) {
