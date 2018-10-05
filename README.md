@@ -37,17 +37,6 @@ Get All Transactions
 http://127.0.0.1:8000/api/positions
 ```
 ### POST ###
-#### LOGIN ####
-POST-Request:
-```
-curl -X POST -H 'Content-Type: application/json' -i 'http://127.0.0.1:8000/api/login' --data '{"Username":"test","PasswordHash":"test"}'
-
-OK:
-{"Username":"test","EncryptedPk":"abcsecret","Login":true}
-Failed:
-{"Username":"test","EncryptedPk":"","Login":false}
-```
-
 #### SIGNUP ####
 POST-Request:
 ```
@@ -59,6 +48,16 @@ OK:
 {"Username":"**username**","EncryptedPk":"**enc_key**","Signup":true}
 Failed:
 {"Username":"**username**","EncryptedPk":"**enc_key**","Signup":false}
+```
+#### LOGIN ####
+POST-Request:
+```
+curl -X POST -H 'Content-Type: application/json' -i 'http://127.0.0.1:8000/api/login' --data '{"Username":"testuser8","PasswordHash":"105d5b6c13df8c30686b0d75b89d98ada04dc32421fd97acfb77bc81e43f6075"}'
+
+OK:
+{"Username":"test","EncryptedPk":"abcsecret","Login":true}
+Failed:
+{"Username":"test","EncryptedPk":"","Login":false}
 ```
 
 ## Dependencies
