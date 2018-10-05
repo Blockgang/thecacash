@@ -17,8 +17,24 @@ function send(){
 }
 
 function like(txid){
-  // like funciton
-  return txid
+  var pkey = document.getElementById('pkey').value
+  var prefix = "0x6d04" //memo.cash like/tip
+  //todo: validate txid pattern
+  var tx = {
+      data: [prefix, txid],
+      cash: { key: pkey }
+    }
+  datacash.send(tx, function(err, res) {
+    if(err != null){
+      return false
+    }else{
+      var likeImg = document.getElementById("like_"+txid)
+      // change like img
+      likeImg.src = "icons/heart_1.png"
+      console.log(res)
+      return true
+    }
+  })
 }
 
 function check_link(link){
@@ -32,19 +48,6 @@ function check_type(type){
 function check_title(title){
   return title
 }
-
-// function check_data(data_s1){
-//   var regex = /([a-z0-9]{20,50})\|([0-9]{4})\|(.*$)/g
-//   var match = regex.exec(data_s1)
-//   var title = false, hash = false, type = false
-//   if(match){
-//     hash = match[1];
-//     type = match[2];
-//     title = match[3];
-//     console.log("Hash: " + hash + "Type: " + type + " Titel: " +  title);
-//   }
-//   return [hash,title,type]
-// }
 
 function play(hash,title,sender){
   console.log(hash,title);
@@ -127,7 +130,7 @@ function list_tx_results(tx,confirmed){
 
   td_txid.innerHTML = "<a class='result-tx-link' data-toggle='tooltip' title='Tx-Data: " + JSON.stringify(tx) + "' target='_blank' href='https://blockchair.com/bitcoin-cash/transaction/"+ tx.tx +"'><span class='glyphicon glyphicon-th'></span></a>";
   td_txid.style.width = "15px";
-  td_like.innerHTML = "<a title='like' href=''><img height='20' onclick='like('"+ tx.tx +"')' src='icons/heart_0.png'></a>"
+  td_like.innerHTML = "<a title='like' onclick='like(`"+ tx.tx +"`)'><img id='like_"+ tx.tx +"' height='20' src='icons/heart_0.png'></a>"
   // td_like.innerHTML = "<a title='like' href=''><img height='20' src='icons/heart_1.png'></a>"
   td_sender.innerHTML = tx.senders[0].a
   td_blockheight.innerHTML = (confirmed) ? (tx.block_index) : ("unconfirmed")
