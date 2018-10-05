@@ -52,6 +52,8 @@ func main() {
 		Methods("GET")
 	router.HandleFunc("/api/login", postLogin).
 		Methods("POST")
+	router.HandleFunc("/api/signup", postSignup).
+		Methods("POST")
 	router.HandleFunc("/api/tx/{txid:[a-fA-F0-9]{64}}", getTransactionData).
 		Methods("GET")
 
@@ -62,16 +64,65 @@ func main() {
 	log.Println("Listening...")
 }
 
-func getTransactionData(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	txid := vars["txid"]
-	fmt.Println("accessed getTransactionData", txid)
-	txData, err := getTransactionDataFromBackend(txid)
+type SignupPost struct {
+	Username     string
+	PasswordHash string
+	EncryptedPk  string
+}
+
+type SignupResponse struct {
+	Username    string
+	EncryptedPk string
+	Signup      bool
+}
+
+func postSignup(w http.ResponseWriter, r *http.Request) {
+	var signupPost SignupPost
+	//var signup bool
+
+	decoder := json.NewDecoder(r.Body)
+	decoder.Decode(&signupPost)
+	log.Printf("Signup accessed: %s %s %s", signupPost.Username, signupPost.PasswordHash, signupPost.EncryptedPk)
+
+	res, err := signup(signupPost.Username, signupPost.PasswordHash, signupPost.EncryptedPk)
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println(err)
 	}
+
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(txData)
+	json.NewEncoder(w).Encode(res)
+}
+
+func signup(userName string, passwordHash string, encryptedPk string) (SignupResponse, error) {
+	var err error
+	var signup bool
+
+	encryptedKey, err := check_login(userName, passwordHash)
+	if err != nil {
+		fmt.Println(err)
+	}
+	if len(encryptedKey) > 0 {
+		signup = false
+	} else {
+		signup = true
+		// MYSQL Insert
+		err = insertLoginIntoMysql(userName, passwordHash, encryptedPk)
+	}
+
+	res := SignupResponse{
+		Username:    userName,
+		EncryptedPk: encryptedPk,
+		Signup:      signup,
+	}
+	return res, err
+}
+
+func insertLoginIntoMysql(userName string, passwordHash string, encryptedPk string) error {
+	sql_query := "INSERT INTO users VALUES(?,?,?)"
+	insert, err := db.Prepare(sql_query)
+	defer insert.Close()
+	_, err = insert.Query(userName, passwordHash, encryptedPk)
+	return err
 }
 
 type LoginPost struct {
@@ -106,7 +157,8 @@ func postLogin(w http.ResponseWriter, r *http.Request) {
 	res := LoginResponse{
 		Username:    loginPost.Username,
 		EncryptedPk: encryptedKey,
-		Login:       login}
+		Login:       login,
+	}
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(res)
@@ -141,6 +193,18 @@ func check_login(userName string, passwordHash string) (string, error) {
 		json.Unmarshal(cache.Value, &encryptedKey)
 	}
 	return encryptedKey, err
+}
+
+func getTransactionData(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	txid := vars["txid"]
+	fmt.Println("accessed getTransactionData", txid)
+	txData, err := getTransactionDataFromBackend(txid)
+	if err != nil {
+		log.Fatal(err)
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(txData)
 }
 
 func getPositions(w http.ResponseWriter, r *http.Request) {
