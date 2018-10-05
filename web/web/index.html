@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>THECA.CASH Media platform (OP_RETURN 1.4)</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Bootstrap -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css?family=Montserrat" rel="stylesheet" type="text/css">
+  <link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet" type="text/css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
+  <!-- Datacash unwriter -->
+  <script src='https://unpkg.com/datacash'></script>
+
+  <!--WebTorrent -->
+  <script src="https://cdn.jsdelivr.net/webtorrent/latest/webtorrent.min.js"></script>
+
+  <!-- Functions -->
+  <script src="main.js"></script>
+
+  <!-- Stylesheet -->
+  <link rel="stylesheet" type="text/css" href="style.css">
+
+  <!-- Favicon -->
+  <link rel="apple-touch-icon" sizes="57x57" href="./favicons/apple-icon-57x57.png">
+  <link rel="apple-touch-icon" sizes="60x60" href="./favicons/apple-icon-60x60.png">
+  <link rel="apple-touch-icon" sizes="72x72" href="./favicons/apple-icon-72x72.png">
+  <link rel="apple-touch-icon" sizes="76x76" href="./favicons/apple-icon-76x76.png">
+  <link rel="apple-touch-icon" sizes="114x114" href="./favicons/apple-icon-114x114.png">
+  <link rel="apple-touch-icon" sizes="120x120" href="./favicons/apple-icon-120x120.png">
+  <link rel="apple-touch-icon" sizes="144x144" href="./favicons/apple-icon-144x144.png">
+  <link rel="apple-touch-icon" sizes="152x152" href="./favicons/apple-icon-152x152.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="./favicons/apple-icon-180x180.png">
+  <link rel="icon" type="image/png" sizes="192x192"  href="./favicons/android-icon-192x192.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="./favicons/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="96x96" href="./favicons/favicon-96x96.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="./favicons/favicon-16x16.png">
+  <link rel="manifest" href="./favicons/manifest.json">
+  <meta name="msapplication-TileColor" content="#ffffff">
+  <meta name="msapplication-TileImage" content="./favicons/ms-icon-144x144.png">
+  <meta name="theme-color" content="#ffffff">
+
+</head>
+<body id="myPage" data-spy="scroll" data-target=".navbar" data-offset="60">
+
+<nav class="navbar navbar-default navbar-fixed-top">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="#myPage"><p><img height="30" src="images/logo_green.png"> theca.cash</p></a>
+    </div>
+    <div class="collapse navbar-collapse" id="myNavbar">
+      <ul class="nav navbar-nav navbar-right">
+        <li><a href="#dashboard">HOME</a></li>
+        <li><a href="#new">NEW</a></li>
+        <li><a href="#videos">VIDEOS</a></li>
+        <li><a href="#channels">CHANNELS</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Container (Dashboard Section) -->
+<div id="Dashboard" class="container-fluid">
+    <div class="row">
+      <div class="col-md-3 col-md-offset-4 home-title">
+        <h1>Welcome to theca.cash</h1>
+        <h2>Your Onchain Media Platform</h2>
+
+        <p class="signup-login">
+          <a class="btn btn-success btn-sm" href="#Signup">Signup</a>
+          or
+          <a class="btn btn-primary btn-sm" href="#Login">Login</a>
+        </p>
+        <div class="input-group home-search">
+          <input id="search" type="text" class="form-control" placeholder="Beethoven" required>
+          <div class="input-group-btn">
+            <a class="btn btn-danger" onclick="bitdb_get_magnetlinks(100);"><span class="glyphicon glyphicon-search"></span></a>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3 col-md-offset-2">
+        <ul class="list-group">
+          <li class="list-group-item"><span class="glyphicon glyphicon-plus-sign"></span> Add Videos</li>
+          <li class="list-group-item"><span class="glyphicon glyphicon-play"></span> Search Videos on the Blockchain</li>
+          <li class="list-group-item"><span class="glyphicon glyphicon-ok-sign"></span> Control your private key</li>
+          <li class="list-group-item"><span class="glyphicon glyphicon-ban-circle"></span> Uncensorable</li>
+          <li class="list-group-item"><span class="glyphicon glyphicon-bitcoin" aria-hidden="true"></span> All using the BCH blockchain</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <!-- Video Output -->
+  <div id="video_output_container" class="container video-output" style="display:none">
+    <div class="container" id="output">
+      <h2 id="video_title"></h2>
+      <div class="row" id="video_description">
+        <!-- Video description -->
+      </div>
+      <div class="row">
+        <div id="progressBar"></div>
+        <!-- The video player will be added here -->
+      </div>
+    </div>
+    <div class="container" id="statistics">
+      <!-- Statistics -->
+      <div class="row">
+        <div id="status">
+          <div>
+            <span class="show-leech">Downloading </span>
+            <span class="show-seed">Seeding </span>
+            <br>
+            <code>
+              <!-- Informative link to the torrent file -->
+              <a id="torrentLink"></a>
+            </code>
+            <br>
+            <span class="show-leech"> from </span>
+            <span class="show-seed"> to </span>
+            <code id="numPeers">0 peers</code>.
+          </div>
+          <div>
+            <code id="downloaded"></code>
+            of <code id="total"></code>
+            — <span id="remaining"></span>
+            &#x2198;<code id="downloadSpeed">0 b/s</code>
+            / &#x2197;<code id="uploadSpeed">0 b/s</code>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Search Output -->
+<div class="container-fluid bg-grey" id="bitdb_output_container" style="display:none">
+    <table class="table" id="bitdb_output_table">
+      <tbody id="bitdb_output">
+      </tbody>
+    </table>
+</div>
+
+
+<div class="container-fluid">
+  <div class="col-md-4 col-md-offset-4">
+    <h2>Write Data into Blockchain:</h2><br>
+    <!-- Data Input -->
+    <div class="row">
+      <div class="col-md-12 form-group">
+        <label>PrivateKey:</label>
+        <input id="pkey" class="form-control" placeholder="PrivateKey...">
+      </div>
+      <div class="col-md-12 form-group">
+        <label>Magnet Hash:</label>
+        <input id="hash" class="form-control" placeholder="Magnet-Hash...">
+      </div>
+      <div class="col-md-12 form-group">
+        <label>Data Type:</label>
+        <select id="data_type" class="form-control">
+            <option value="mp4">.mp4</option>
+            <option value="mp3">.mp3</option>
+            <option value="mkv">.mkv</option>
+            <option value="mov">.mov</option>
+            <option value="wmv">.wmv</option>
+        </select>
+      </div>
+      <div class="col-md-12 form-group">
+        <label>Title:</label>
+        <input id="title" class="form-control" placeholder="Title...">
+      </div>
+      <div class="col-md-12 form-group">
+        <button size="10" class="form-control" onclick="send();">Write into Blockchain</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<footer class="container-fluid text-center">
+  <a href="#myPage" title="To Top">
+    <span class="glyphicon glyphicon-chevron-up"></span>
+  </a>
+  <p><a href="#about" title="About">About</a> | <a href="#protocol" title="Protocol">Protocol</a> | <a href="#donate" title="Donate">Donate</a></p>
+</footer>
+
+<script>
+$(document).ready(function(){
+  // Add smooth scrolling to all links in navbar + footer link
+  $(".navbar a, footer a[href='#myPage']").on('click', function(event) {
+    // Make sure this.hash has a value before overriding default behavior
+    if (this.hash !== "") {
+      // Prevent default anchor click behavior
+      event.preventDefault();
+
+      // Store hash
+      var hash = this.hash;
+
+      // Using jQuery's animate() method to add smooth page scroll
+      // The optional number (900) specifies the number of milliseconds it takes to scroll to the specified area
+      $('html, body').animate({
+        scrollTop: $(hash).offset().top
+      }, 900, function(){
+
+        // Add hash (#) to URL when done scrolling (default click behavior)
+        window.location.hash = hash;
+      });
+    } // End if
+  });
+
+  $(window).scroll(function() {
+    $(".slideanim").each(function(){
+      var pos = $(this).offset().top;
+
+      var winTop = $(window).scrollTop();
+        if (pos < winTop + 600) {
+          $(this).addClass("slide");
+        }
+    });
+  });
+})
+</script>
+<script>
+  bitdb_get_magnetlinks(100);
+</script>
+
+</body>
+</html>

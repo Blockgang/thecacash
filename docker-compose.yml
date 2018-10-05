@@ -21,16 +21,18 @@ services:
       - "db"
         #stdin_open: true
         #tty: true
+#    network_mode: bridge 
     networks:
       thecanet:
         ipv4_address: 192.168.12.4
+    restart: always
 
   web:
     build: ./web
     volumes:
-      - ./web/web/:/usr/share/nginx/html/
+      - ./web/web/:/var/www/
     ports:
-      - "127.0.0.1:80:80"
+      - "127.0.0.1:8080:8000"
     networks:
       thecanet:
         ipv4_address: 192.168.12.5

@@ -34,7 +34,7 @@ http://127.0.0.1:8000/api/tx/569be470b326e50afbbc739531ea428b5c6977fd900091e3a8f
 ```
 Get All Transactions
 ```
-http://127.0.0.1:8000/api/positions
+http://127.0.0.1:8000/api/tx/positions
 ```
 ### POST ###
 #### SIGNUP ####
