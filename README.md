@@ -55,9 +55,9 @@ POST-Request:
 curl -X POST -H 'Content-Type: application/json' -i 'http://127.0.0.1:8000/api/login' --data '{"Username":"testuser8","PasswordHash":"105d5b6c13df8c30686b0d75b89d98ada04dc32421fd97acfb77bc81e43f6075"}'
 
 OK:
-{"Username":"test","EncryptedPk":"abcsecret","Login":true}
+{"Username":"**username**","EncryptedPk":"**enc_key**","Login":true}
 Failed:
-{"Username":"test","EncryptedPk":"","Login":false}
+{"Username":"**username**","EncryptedPk":"","Login":false}
 ```
 
 ## Dependencies
