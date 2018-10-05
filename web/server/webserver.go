@@ -12,6 +12,7 @@ import (
 
 	"github.com/bradfitz/gomemcache/memcache"
 	"github.com/gorilla/mux"
+
 	"github.com/junhsieh/goexamples/fieldbinding/fieldbinding"
 
 	_ "github.com/go-sql-driver/mysql"
