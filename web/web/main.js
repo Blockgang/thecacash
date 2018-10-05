@@ -123,6 +123,7 @@ function list_tx_results(tx,confirmed){
   td_txid.innerHTML = "<a class='result-tx-link' data-toggle='tooltip' title='Tx-Data: " + JSON.stringify(tx) + "' target='_blank' href='https://blockchair.com/bitcoin-cash/transaction/"+ tx.tx +"'><span class='glyphicon glyphicon-th'></span></a>";
   td_txid.style.width = "15px";
   td_like.innerHTML = "<a title='like' href=''><img height='20' src='icons/heart_0.png'></a>"
+  // td_like.innerHTML = "<a title='like' href=''><img height='20' src='icons/heart_1.png'></a>"
   td_sender.innerHTML = tx.senders[0].a
   td_blockheight.innerHTML = (confirmed) ? (tx.block_index) : ("unconfirmed")
 
@@ -140,8 +141,8 @@ function list_tx_results(tx,confirmed){
     td_play.style.width = "15px";
 
     tr.appendChild(td_txid);
-    tr.appendChild(td_play);
     tr.appendChild(td_like);
+    tr.appendChild(td_play);
     tr.appendChild(td_6a_title);
 
     // tr.appendChild(td_6a_type);
