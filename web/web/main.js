@@ -16,6 +16,11 @@ function send(){
   })
 }
 
+function like(txid){
+  // like funciton
+  return txid
+}
+
 function check_link(link){
   return link
 }
@@ -122,7 +127,7 @@ function list_tx_results(tx,confirmed){
 
   td_txid.innerHTML = "<a class='result-tx-link' data-toggle='tooltip' title='Tx-Data: " + JSON.stringify(tx) + "' target='_blank' href='https://blockchair.com/bitcoin-cash/transaction/"+ tx.tx +"'><span class='glyphicon glyphicon-th'></span></a>";
   td_txid.style.width = "15px";
-  td_like.innerHTML = "<a title='like' href=''><img height='20' src='icons/heart_0.png'></a>"
+  td_like.innerHTML = "<a title='like' href=''><img height='20' onclick='like('"+ tx.tx +"')' src='icons/heart_0.png'></a>"
   // td_like.innerHTML = "<a title='like' href=''><img height='20' src='icons/heart_1.png'></a>"
   td_sender.innerHTML = tx.senders[0].a
   td_blockheight.innerHTML = (confirmed) ? (tx.block_index) : ("unconfirmed")
