@@ -111,6 +111,7 @@ function bitdb_get_magnetlinks(limit) {
 function list_tx_results(tx,confirmed){
   var tr = document.createElement('tr');
   var td_txid = document.createElement('td');
+  var td_like = document.createElement('td');
   var td_6a_magnethash = document.createElement('td');
   var td_6a_title = document.createElement('td');
   var td_6a_type = document.createElement('td');
@@ -121,6 +122,8 @@ function list_tx_results(tx,confirmed){
 
   td_txid.innerHTML = "<a class='result-tx-link' data-toggle='tooltip' title='Tx-Data: " + JSON.stringify(tx) + "' target='_blank' href='https://blockchair.com/bitcoin-cash/transaction/"+ tx.tx +"'><span class='glyphicon glyphicon-th'></span></a>";
   td_txid.style.width = "15px";
+  td_like.innerHTML = "<a title='like' href=''><img height='20' src='icons/heart_0.png'></a>"
+  // td_like.innerHTML = "<a title='like' href=''><img height='20' src='icons/heart_1.png'></a>"
   td_sender.innerHTML = tx.senders[0].a
   td_blockheight.innerHTML = (confirmed) ? (tx.block_index) : ("unconfirmed")
 
@@ -129,15 +132,16 @@ function list_tx_results(tx,confirmed){
   var type = check_type(tx.s3)
   var title = check_title(tx.s4)
   if (link && type && title){
-    td_6a_magnethash.innerHTML = link;
+    td_6a_magnethash.innerHTML = "<a class='' href='"+ link +"'><img height='15' src='icons/icons8-magnet-filled-50.png'>" + link + "</a>";
     td_6a_title.innerHTML = title;
     td_6a_type.innerHTML = type;
 
     input_data = '"' + link + '","' + title + '","' + tx.senders[0].a + '"'
-    td_play.innerHTML = "<button class='result-play' onclick='play(" + input_data + ");'><span class='glyphicon glyphicon-play-circle'></span></button>";
+    td_play.innerHTML = "<button title='play with webtorrent' class='result-play' onclick='play(" + input_data + ");'><span class='glyphicon glyphicon-play-circle'></span></button>";
     td_play.style.width = "15px";
 
     tr.appendChild(td_txid);
+    tr.appendChild(td_like);
     tr.appendChild(td_play);
     tr.appendChild(td_6a_title);
 
