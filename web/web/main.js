@@ -1,9 +1,9 @@
-function send(){
+function send(){ //217 chars
   var pkey = document.getElementById('pkey').value
   var title = document.getElementById('title').value
   var type = document.getElementById('data_type').value
   var hash = document.getElementById('hash').value
-  var prefix = "0xe901"
+  var prefix = "0xe901" //theca init
   // var raw_data = hash + "|" + type + "|" + title
   var payload = [hash,type,title]
   console.log(payload);
@@ -16,9 +16,27 @@ function send(){
   })
 }
 
+
+function comment(txid,comment){ //comment 184chars
+  var pkey = document.getElementById('pkey').value
+  var prefix = "0xe903" //theca like/tip
+  //todo: validate txid pattern
+  var tx = {
+      data: [prefix, txid],
+      cash: { key: pkey }
+    }
+  datacash.send(tx, function(err, res) {
+    if(err != null){
+      return false
+    }else{
+      return true
+    }
+  })
+}
+
 function like(txid){
   var pkey = document.getElementById('pkey').value
-  var prefix = "0x6d04" //memo.cash like/tip
+  var prefix = "0xe904" //theca like/tip
   //todo: validate txid pattern
   var tx = {
       data: [prefix, txid],
@@ -32,6 +50,40 @@ function like(txid){
       // change like img
       likeImg.src = "icons/heart_1.png"
       console.log(res)
+      return true
+    }
+  })
+}
+
+function follow(address){
+  var pkey = document.getElementById('pkey').value
+  var prefix = "0xe905" //theca like/tip
+  //todo: validate txid pattern
+  var tx = {
+      data: [prefix, txid],
+      cash: { key: pkey }
+    }
+  datacash.send(tx, function(err, res) {
+    if(err != null){
+      return false
+    }else{
+      return true
+    }
+  })
+}
+
+function unfollow(address){
+  var pkey = document.getElementById('pkey').value
+  var prefix = "0xe906" //theca like/tip
+  //todo: validate txid pattern
+  var tx = {
+      data: [prefix, txid],
+      cash: { key: pkey }
+    }
+  datacash.send(tx, function(err, res) {
+    if(err != null){
+      return false
+    }else{
       return true
     }
   })
