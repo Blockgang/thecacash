@@ -37,18 +37,30 @@ Get All Transactions
 http://127.0.0.1:8000/api/positions
 ```
 ### POST ###
-Post Login Data, returns: bool,encrypted_key)
+#### LOGIN ####
+POST-Request:
 ```
-http://127.0.0.1:8000/api/login
-==>POST-Header: "Content-Type: application/json"
-==>POST-Body: {"Username":"user1","PasswordHash":"569be470b326e50afbbc739531ea428b5c6"}
-
-==>Response Login failed: {"Username":"test","EncryptedPk":"","Login":false}
-==>Response Login OK: {"Username":"test","EncryptedPk":"abcsecret","Login":true}
-
-Examlpe curl:
 curl -X POST -H 'Content-Type: application/json' -i 'http://127.0.0.1:8000/api/login' --data '{"Username":"test","PasswordHash":"test"}'
+
+OK:
+{"Username":"test","EncryptedPk":"abcsecret","Login":true}
+Failed:
+{"Username":"test","EncryptedPk":"","Login":false}
 ```
+
+#### SIGNUP ####
+POST-Request:
+```
+curl -X POST -i 'http://127.0.0.1:8000/api/signup' --data '{"Username":"testuser8","PasswordHash":"105d5b6c13df8c30686b0d75b89d98ada04dc32421fd97acfb77bc81e43f6075","EncryptedPk":"this is the excrypted privatekey"}'
+```
+Possible Responses:
+```
+OK:
+{"Username":"**username**","EncryptedPk":"**enc_key**","Signup":true}
+Failed:
+{"Username":"**username**","EncryptedPk":"**enc_key**","Signup":false}
+```
+
 ## Dependencies
 #### sync
 ##### dependencies (for build)
