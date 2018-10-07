@@ -36,6 +36,8 @@ function reply(txid,comment){ //comment 184chars
 
 function like(txid,counter){
   var pkey = document.getElementById('pkey').value
+  var likeCounter = document.getElementById("like_counter_"+txid)
+  var likeImg = document.getElementById("like_"+txid)
   var prefix = "0x6d04" //memo like
   //todo: validate txid pattern
   var tx = {
@@ -46,10 +48,8 @@ function like(txid,counter){
     if(err != null){
       return false
     }else{
-      var likeImg = document.getElementById("like_"+txid)
-      var likeCounter = document.getElementById("like_counter_"+txid)
-      likeImg.class = "liked"
-      likeCounter.innerHTML = counter + 1
+      // likeImg.className = "liked"
+      likeCounter.innerHTML = parseInt(likeCounter.innerHTML) + 1
       // change like img
       likeImg.src = "icons/heart_1.png"
       console.log(res)
@@ -185,7 +185,7 @@ function list_tx_results(tx,confirmed){
 
   td_txid.innerHTML = "<a class='result-tx-link' data-toggle='tooltip' title='Tx-Data: " + JSON.stringify(tx) + "' target='_blank' href='https://blockchair.com/bitcoin-cash/transaction/"+ tx.tx +"'><span class='glyphicon glyphicon-th'></span></a>";
   td_txid.style.width = "15px";
-  td_like.innerHTML = "<a title='like' onclick='like(`"+ tx.tx +"`,0)'><img class='like' id='like_"+ tx.tx +"' height='20' src='icons/heart_0.png'><span id='like_counter_"+ tx.tx +"'></span></a>"
+  td_like.innerHTML = "<a title='like' onclick='like(`"+ tx.tx +"`)'><img class='like' id='like_"+ tx.tx +"' height='20' src='icons/heart_0.png'><span class='likecounter' id='like_counter_"+ tx.tx +"'>0</span></a>"
   // td_like.innerHTML = "<a title='like' href=''><img height='20' src='icons/heart_1.png'></a>"
   td_sender.innerHTML = tx.senders[0].a
   td_blockheight.innerHTML = (confirmed) ? (tx.block_index) : ("unconfirmed")
