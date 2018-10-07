@@ -1,4 +1,4 @@
-.like img:active {
+.like:active {
     animation: shake 0.5s;
     animation-iteration-count: 1;
 }
@@ -70,12 +70,12 @@ video {
     border: 0px
 }
 
-.jumbotron {
+/* .jumbotron {
     background-color: #f4511e;
     color: #fff;
     padding: 50px 35px;
     font-family: Montserrat, sans-serif;
-}
+} */
 .container-fluid {
     padding: 60px 50px;
     padding-bottom: 10px;
