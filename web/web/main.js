@@ -119,7 +119,7 @@ function bitdb_get_magnetlinks(limit) {
       },
       find: {
         b1: { "$in": ["e901"] },
-        s2: {
+        s4: {
           "$regex": search_string, "$options": "i"
         }
         // b2: search_string,
