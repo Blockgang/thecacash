@@ -17,9 +17,9 @@ function send(){ //217 chars
 }
 
 
-function comment(txid,comment){ //comment 184chars
+function reply(txid,comment){ //comment 184chars
   var pkey = document.getElementById('pkey').value
-  var prefix = "0xe903" //theca like/tip
+  var prefix = "0x6d03" // memo reply
   //todo: validate txid pattern
   var tx = {
       data: [prefix, txid],
@@ -36,7 +36,7 @@ function comment(txid,comment){ //comment 184chars
 
 function like(txid){
   var pkey = document.getElementById('pkey').value
-  var prefix = "0xe904" //theca like/tip
+  var prefix = "0x6d04" //memo like
   //todo: validate txid pattern
   var tx = {
       data: [prefix, txid],
@@ -57,7 +57,7 @@ function like(txid){
 
 function follow(address){
   var pkey = document.getElementById('pkey').value
-  var prefix = "0xe905" //theca like/tip
+  var prefix = "0x6d05"
   //todo: validate txid pattern
   var tx = {
       data: [prefix, txid],
@@ -74,7 +74,7 @@ function follow(address){
 
 function unfollow(address){
   var pkey = document.getElementById('pkey').value
-  var prefix = "0xe906" //theca like/tip
+  var prefix = "0x6d06"
   //todo: validate txid pattern
   var tx = {
       data: [prefix, txid],
@@ -182,7 +182,7 @@ function list_tx_results(tx,confirmed){
 
   td_txid.innerHTML = "<a class='result-tx-link' data-toggle='tooltip' title='Tx-Data: " + JSON.stringify(tx) + "' target='_blank' href='https://blockchair.com/bitcoin-cash/transaction/"+ tx.tx +"'><span class='glyphicon glyphicon-th'></span></a>";
   td_txid.style.width = "15px";
-  td_like.innerHTML = "<a title='like' onclick='like(`"+ tx.tx +"`)'><img id='like_"+ tx.tx +"' height='20' src='icons/heart_0.png'></a>"
+  td_like.innerHTML = "<a class='like' title='like' onclick='like(`"+ tx.tx +"`)'><img id='like_"+ tx.tx +"' height='20' src='icons/heart_0.png'></a>"
   // td_like.innerHTML = "<a title='like' href=''><img height='20' src='icons/heart_1.png'></a>"
   td_sender.innerHTML = tx.senders[0].a
   td_blockheight.innerHTML = (confirmed) ? (tx.block_index) : ("unconfirmed")
