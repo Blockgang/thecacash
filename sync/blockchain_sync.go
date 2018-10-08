@@ -27,6 +27,7 @@ type Transaction struct {
 
 type OutSub struct {
 	B1 string `json:"b1"`
+	B2 string `json:"b2"`
 	S2 string `json:"s2"`
 	S3 string `json:"s3"`
 	S4 string `json:"s4"`
@@ -84,6 +85,108 @@ func insertIntoMysql(TxId string, prefix string, hash string, data_type string, 
 	return err
 }
 
+func insertMemoLikeIntoMysql(TxId string, txHash string, Sender string, BlockTimestamp uint32, BlockHeight uint32) error {
+	sql_query := "INSERT INTO prefix_0x6d04 VALUES(?,?,?,?,?)"
+	insert, err := db.Prepare(sql_query)
+	defer insert.Close()
+	_, err = insert.Query(TxId, txHash, BlockTimestamp, BlockHeight, Sender)
+	return err
+}
+
+func getMemoLikes(ScannerBlockHeight uint32) {
+	var q Query
+	var memoLikesQuery = `{
+		"v": 2,
+		"e": {
+			"out.b1": "hex",
+			"out.b2": "hex"
+		},
+		"q": {
+			"find": {
+				"out.b1": "6d04",
+				"out.b0": {
+					"op": 106
+				},
+				"blk.i": {
+					"$gte" : %d
+				}
+
+			},
+			"project": {
+				"out.b1": 1,
+				"out.b2": 1,
+				"tx.h": 1,
+				"blk.t": 1,
+				"blk.i": 1,
+				"in.e.a":1,
+				"_id": 0
+			}
+		}
+	}`
+
+	memoLikesQuery = fmt.Sprintf(memoLikesQuery, ScannerBlockHeight)
+
+	b64_query := base64.StdEncoding.EncodeToString([]byte(memoLikesQuery))
+	url := "https://bitdb.network/q/" + b64_query
+	client := &http.Client{}
+	req, _ := http.NewRequest("GET", url, nil)
+	req.Header.Set("key", "qz6qzfpttw44eqzqz8t2k26qxswhff79ng40pp2m44")
+	res, _ := client.Do(req)
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	json.Unmarshal(body, &q)
+
+	var BlockHeight uint32
+
+	for i := range q.Confirmed {
+		Sender := q.Confirmed[i].In[0].E.A
+		TxId := q.Confirmed[i].Tx.H
+		txOuts := q.Confirmed[i].Out
+		BlockTimestamp := q.Confirmed[i].Blk.T
+		BlockHeight = q.Confirmed[i].Blk.I
+		// if BlockHeight > ScannerBlockHeight {
+		// 	ScannerBlockHeight = BlockHeight + 1
+		// }
+		var Prefix string
+		var Hash string
+		for a := range txOuts {
+			if txOuts[a].B1 == "6d04" {
+				Prefix = txOuts[a].B1
+				Hash = txOuts[a].B2
+			}
+		}
+
+		if len(Prefix) != 0 && len(Hash) > 20 {
+			exists := false
+			//todo: unconfirmed memo likes
+			// for i := range unconfirmedInDb {
+			// 	uc_txid := unconfirmedInDb[i]
+			// 	if uc_txid == TxId {
+			// 		exists = true
+			// 	}
+			// }
+
+			if exists {
+				err := updateMysql(TxId, BlockTimestamp, BlockHeight)
+				if err != nil {
+					fmt.Println("UPDATE FAILED (confirmed) error")
+				} else {
+					fmt.Println("UPDATE OK (confirmed)==> ", TxId, Hash, Sender, BlockTimestamp, BlockHeight)
+				}
+			} else {
+				err := insertMemoLikeIntoMysql(TxId, Hash, Sender, BlockTimestamp, BlockHeight)
+				if err != nil {
+					fmt.Println("INSERT DUP / FAILED (confirmed) error or duplicated db entry")
+				} else {
+					fmt.Println("INSERT OK (confirmed)==> ", TxId, Hash, Sender, BlockTimestamp, BlockHeight)
+				}
+			}
+		}
+	}
+}
+
 func main() {
 	var err error
 	db, err = sql.Open("mysql", "root:8drRNG8RWw9FjzeJuavbY6f9@tcp(192.168.12.2:3306)/theca")
@@ -102,6 +205,9 @@ func main() {
 
 	loop := true
 	for loop {
+
+		getMemoLikes(ScannerBlockHeight)
+
 		//list of unconfirmed tx in db
 		unconfirmedInDb, err := selectUnconfiremedMysql()
 
@@ -146,11 +252,8 @@ func main() {
 		client := &http.Client{}
 		req, _ := http.NewRequest("GET", url, nil)
 		req.Header.Set("key", "qz6qzfpttw44eqzqz8t2k26qxswhff79ng40pp2m44")
-
 		res, _ := client.Do(req)
-
 		body, err := ioutil.ReadAll(res.Body)
-
 		if err != nil {
 			log.Fatalln(err)
 		}

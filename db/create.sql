@@ -35,7 +35,7 @@ CREATE TABLE `prefix_0x6d03` (
 
 CREATE TABLE `prefix_0x6d04` (
   `txid` varchar(64) NOT NULL,
-  `txhash` varchar(30) NOT NULL,
+  `txhash` varchar(64) NOT NULL,
   `blocktimestamp` int(11) DEFAULT 0,
   `blockheight` int(11) DEFAULT 0,
   `sender` varchar(60) NOT NULL,
