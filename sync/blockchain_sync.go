@@ -87,9 +87,14 @@ func insertIntoMysql(TxId string, prefix string, hash string, data_type string, 
 
 func insertMemoLikeIntoMysql(TxId string, txHash string, Sender string, BlockTimestamp uint32, BlockHeight uint32) error {
 	sql_query := "INSERT INTO prefix_0x6d04 VALUES(?,?,?,?,?)"
+	fmt.Println(TxId, txHash, BlockTimestamp, BlockHeight, Sender)
+	time.Sleep(10 * time.Millisecond) //todo: ansonsten too many connections
 	insert, err := db.Prepare(sql_query)
-	defer insert.Close()
+	if err != nil {
+		fmt.Println(err)
+	}
 	_, err = insert.Query(TxId, txHash, BlockTimestamp, BlockHeight, Sender)
+	insert.Close()
 	return err
 }
 
@@ -112,6 +117,7 @@ func getMemoLikes(ScannerBlockHeight uint32) {
 				}
 
 			},
+			"limit":5000,
 			"project": {
 				"out.b1": 1,
 				"out.b2": 1,
@@ -190,6 +196,7 @@ func getMemoLikes(ScannerBlockHeight uint32) {
 func main() {
 	var err error
 	db, err = sql.Open("mysql", "root:8drRNG8RWw9FjzeJuavbY6f9@tcp(192.168.12.2:3306)/theca")
+	//db.SetMaxOpenConns(10000)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -205,9 +212,6 @@ func main() {
 
 	loop := true
 	for loop {
-
-		getMemoLikes(ScannerBlockHeight)
-
 		//list of unconfirmed tx in db
 		unconfirmedInDb, err := selectUnconfiremedMysql()
 
@@ -385,7 +389,8 @@ func main() {
 				}
 			}
 		}
-
+		// get memo likes
+		//getMemoLikes(ScannerBlockHeight)
 		time.Sleep(10 * time.Second)
 	}
 
