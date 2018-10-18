@@ -52,7 +52,7 @@ type Id struct {
 
 var db *sql.DB
 
-func selectUnconfiremedMysql() ([]string, error) {
+func selectUnconfirmedMysql() ([]string, error) {
 	var uc_txs []string
 	sql_query_uc := "SELECT txid FROM prefix_0xe901 WHERE blockheight = 0"
 	uc_query, err := db.Query(sql_query_uc)
@@ -213,7 +213,7 @@ func main() {
 	loop := true
 	for loop {
 		//list of unconfirmed tx in db
-		unconfirmedInDb, err := selectUnconfiremedMysql()
+		unconfirmedInDb, err := selectUnconfirmedMysql()
 
 		var query = `{
 		  "v": 2,
