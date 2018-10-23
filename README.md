@@ -24,10 +24,54 @@ stop dockers
 docker-compose down
 ```
 
+
+## API Access
+### GET ###
+Get Transaction Infos
+```
+http://127.0.0.1:8000/api/tx/{txid}
+http://127.0.0.1:8000/api/tx/569be470b326e50afbbc739531ea428b5c6977fd900091e3a8faeaf90b85140b
+```
+Get All Transactions
+```
+http://127.0.0.1:8000/api/tx/positions
+```
+### POST ###
+#### SIGNUP ####
+POST-Request:
+```
+curl -X POST -i 'http://127.0.0.1:8000/api/signup' --data '{"Username":"testuser8","PasswordHash":"105d5b6c13df8c30686b0d75b89d98ada04dc32421fd97acfb77bc81e43f6075","EncryptedPk":"this is the excrypted privatekey"}'
+```
+Possible Responses:
+```
+OK:
+{"Username":"**username**","EncryptedPk":"**enc_key**","Signup":true}
+Failed:
+{"Username":"**username**","EncryptedPk":"**enc_key**","Signup":false}
+```
+#### LOGIN ####
+POST-Request:
+```
+curl -X POST -H 'Content-Type: application/json' -i 'http://127.0.0.1:8000/api/login' --data '{"Username":"testuser8","PasswordHash":"105d5b6c13df8c30686b0d75b89d98ada04dc32421fd97acfb77bc81e43f6075"}'
+
+OK:
+{"Username":"**username**","EncryptedPk":"**enc_key**","Login":true}
+Failed:
+{"Username":"**username**","EncryptedPk":"","Login":false}
+```
+
+## Dependencies
 #### sync
 ##### dependencies (for build)
 ```
  go get -u github.com/go-sql-driver/mysql
+```
+
+#### web
+##### dependencies (for build)
+```
+go get github.com/bradfitz/gomemcache/memcache
+go get github.com/gorilla/mux
 ```
 
 ## Links?

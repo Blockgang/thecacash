@@ -1,9 +1,9 @@
-function send(){
+function send(){ //217 chars
   var pkey = document.getElementById('pkey').value
   var title = document.getElementById('title').value
   var type = document.getElementById('data_type').value
   var hash = document.getElementById('hash').value
-  var prefix = "0xe901"
+  var prefix = "0xe901" //theca init
   // var raw_data = hash + "|" + type + "|" + title
   var payload = [hash,type,title]
   console.log(payload);
@@ -13,6 +13,82 @@ function send(){
     }
   datacash.send(tx, function(err, res) {
     console.log(res)
+  })
+}
+
+
+function reply(txid,comment){ //comment 184chars
+  var pkey = document.getElementById('pkey').value
+  var prefix = "0x6d03" // memo reply
+  //todo: validate txid pattern
+  var tx = {
+      data: [prefix, txid],
+      cash: { key: pkey }
+    }
+  datacash.send(tx, function(err, res) {
+    if(err != null){
+      return false
+    }else{
+      return true
+    }
+  })
+}
+
+function like(txid,counter){
+  var pkey = document.getElementById('pkey').value
+  var likeCounter = document.getElementById("like_counter_"+txid)
+  var likeImg = document.getElementById("like_"+txid)
+  var prefix = "0x6d04" //memo like
+  //todo: validate txid pattern
+  var tx = {
+      data: [prefix, txid],
+      cash: { key: pkey }
+    }
+  datacash.send(tx, function(err, res) {
+    if(err != null){
+      return false
+    }else{
+      // likeImg.className = "liked"
+      likeCounter.innerHTML = parseInt(likeCounter.innerHTML) + 1
+      // change like img
+      likeImg.src = "icons/heart_1.png"
+      console.log(res)
+      return true
+    }
+  })
+}
+
+function follow(address){
+  var pkey = document.getElementById('pkey').value
+  var prefix = "0x6d05"
+  //todo: validate txid pattern
+  var tx = {
+      data: [prefix, txid],
+      cash: { key: pkey }
+    }
+  datacash.send(tx, function(err, res) {
+    if(err != null){
+      return false
+    }else{
+      return true
+    }
+  })
+}
+
+function unfollow(address){
+  var pkey = document.getElementById('pkey').value
+  var prefix = "0x6d06"
+  //todo: validate txid pattern
+  var tx = {
+      data: [prefix, txid],
+      cash: { key: pkey }
+    }
+  datacash.send(tx, function(err, res) {
+    if(err != null){
+      return false
+    }else{
+      return true
+    }
   })
 }
 
@@ -27,19 +103,6 @@ function check_type(type){
 function check_title(title){
   return title
 }
-
-// function check_data(data_s1){
-//   var regex = /([a-z0-9]{20,50})\|([0-9]{4})\|(.*$)/g
-//   var match = regex.exec(data_s1)
-//   var title = false, hash = false, type = false
-//   if(match){
-//     hash = match[1];
-//     type = match[2];
-//     title = match[3];
-//     console.log("Hash: " + hash + "Type: " + type + " Titel: " +  title);
-//   }
-//   return [hash,title,type]
-// }
 
 function play(hash,title,sender){
   console.log(hash,title);
@@ -56,7 +119,7 @@ function bitdb_get_magnetlinks(limit) {
       },
       find: {
         b1: { "$in": ["e901"] },
-        s2: {
+        s4: {
           "$regex": search_string, "$options": "i"
         }
         // b2: search_string,
@@ -111,6 +174,7 @@ function bitdb_get_magnetlinks(limit) {
 function list_tx_results(tx,confirmed){
   var tr = document.createElement('tr');
   var td_txid = document.createElement('td');
+  var td_like = document.createElement('td');
   var td_6a_magnethash = document.createElement('td');
   var td_6a_title = document.createElement('td');
   var td_6a_type = document.createElement('td');
@@ -121,6 +185,8 @@ function list_tx_results(tx,confirmed){
 
   td_txid.innerHTML = "<a class='result-tx-link' data-toggle='tooltip' title='Tx-Data: " + JSON.stringify(tx) + "' target='_blank' href='https://blockchair.com/bitcoin-cash/transaction/"+ tx.tx +"'><span class='glyphicon glyphicon-th'></span></a>";
   td_txid.style.width = "15px";
+  td_like.innerHTML = "<a title='like' onclick='like(`"+ tx.tx +"`)'><img class='like' id='like_"+ tx.tx +"' height='20' src='icons/heart_0.png'><span class='likecounter' id='like_counter_"+ tx.tx +"'>0</span></a>"
+  // td_like.innerHTML = "<a title='like' href=''><img height='20' src='icons/heart_1.png'></a>"
   td_sender.innerHTML = tx.senders[0].a
   td_blockheight.innerHTML = (confirmed) ? (tx.block_index) : ("unconfirmed")
 
@@ -129,15 +195,16 @@ function list_tx_results(tx,confirmed){
   var type = check_type(tx.s3)
   var title = check_title(tx.s4)
   if (link && type && title){
-    td_6a_magnethash.innerHTML = link;
+    td_6a_magnethash.innerHTML = "<a class='' href='"+ link +"'><img height='15' src='icons/icons8-magnet-filled-50.png'>" + link + "</a>";
     td_6a_title.innerHTML = title;
     td_6a_type.innerHTML = type;
 
     input_data = '"' + link + '","' + title + '","' + tx.senders[0].a + '"'
-    td_play.innerHTML = "<button class='result-play' onclick='play(" + input_data + ");'><span class='glyphicon glyphicon-play-circle'></span></button>";
+    td_play.innerHTML = "<button title='play with webtorrent' class='result-play' onclick='play(" + input_data + ");'><span class='glyphicon glyphicon-play-circle'></span></button>";
     td_play.style.width = "15px";
 
     tr.appendChild(td_txid);
+    tr.appendChild(td_like);
     tr.appendChild(td_play);
     tr.appendChild(td_6a_title);
 
