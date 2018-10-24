@@ -147,7 +147,7 @@ const uc_memoLikesQuery = `{
 				"op": 106
 			}
 		},
-		// "limit":100000,
+		"limit":100000,
 		"project": {
 			"out.b1": 1,
 			"out.b2": 1,
