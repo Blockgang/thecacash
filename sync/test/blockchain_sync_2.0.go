@@ -404,7 +404,8 @@ func getMemoLikes(ScannerBlockHeight uint32, unconfirmedInDb []string) uint32 {
 		log.Fatalln(err)
 	}
 
-	json.Unmarshal(body, &q)
+	err = json.Unmarshal(body, &q)
+	fmt.Println(err)
 
 	var BlockHeight uint32
 
@@ -437,16 +438,16 @@ func getMemoLikes(ScannerBlockHeight uint32, unconfirmedInDb []string) uint32 {
 			if exists {
 				err := updateMysql(Prefix, TxId, BlockTimestamp, BlockHeight)
 				if err != nil {
-					fmt.Println("UPDATE FAILED (confirmed) error")
+					// fmt.Println("UPDATE FAILED (confirmed) error")
 				} else {
-					fmt.Println("UPDATE OK (confirmed)==> ", TxId, Hash, Sender, BlockTimestamp, BlockHeight)
+					// fmt.Println("UPDATE OK (confirmed)==> ", TxId, Hash, Sender, BlockTimestamp, BlockHeight)
 				}
 			} else {
 				err := insertMemoLikeIntoMysql(TxId, Hash, Sender, BlockTimestamp, BlockHeight)
 				if err != nil {
-					fmt.Println("INSERT DUP / FAILED (confirmed) error or duplicated db entry")
+					// fmt.Println("INSERT DUP / FAILED (confirmed) error or duplicated db entry")
 				} else {
-					fmt.Println("INSERT OK (confirmed)==> ", TxId, Hash, Sender, BlockTimestamp, BlockHeight)
+					// fmt.Println("INSERT OK (confirmed)==> ", TxId, Hash, Sender, BlockTimestamp, BlockHeight)
 				}
 			}
 		}
