@@ -112,32 +112,59 @@ function play(hash,title,sender){
 
 function bitdb_get_magnetlinks(limit) {
   var search_string = document.getElementById('search').value
+  // var query = {
+  //   request: {
+  //     encoding: {
+  //       b1: "hex"
+  //     },
+  //     find: {
+  //       b1: { "$in": ["e901"] },
+  //       s4: {
+  //         "$regex": search_string, "$options": "i"
+  //       }
+  //       // b2: search_string,
+  //       // 'senders.a': "qpy3cc67n3j9rpr8c3yx3lv0qc9k2kmfyud9e485w2"
+  //     },
+  //     project: {
+  //       b0:1 ,b1: 1, s2: 1, s3: 1, s4: 1, tx: 1, block_index: 1, _id: 0, senders: 1
+  //     },
+  //     limit: limit
+  //   },
+  //   response: {
+  //     encoding: {
+  //       b1: "hex"
+  //     }
+  //   }
+  // };
+
   var query = {
-    request: {
-      encoding: {
-        b1: "hex"
-      },
-      find: {
-        b1: { "$in": ["e901"] },
-        s4: {
-          "$regex": search_string, "$options": "i"
-        }
-        // b2: search_string,
-        // 'senders.a': "qpy3cc67n3j9rpr8c3yx3lv0qc9k2kmfyud9e485w2"
-      },
-      project: {
-        b0:1 ,b1: 1, s2: 1, s3: 1, s4: 1, tx: 1, block_index: 1, _id: 0, senders: 1
-      },
-      limit: limit
-    },
-    response: {
-      encoding: {
-        b1: "hex"
-      }
-    }
+  	"v": 3,
+  	"e": { "out.b1": "hex"  },
+  	"q": {
+  		"db": ["c","u"],
+  		"find": {
+        "out.s4": { "$regex": search_string, "$options": "i" },
+  			"out.b1": "e901",
+  			"out.b0": {
+  				"op": 106
+  			}
+  		},
+  		"limit":100000,
+  		"project": {
+  		  "out.b0": 1,
+  			"out.b1": 1,
+  			"out.s2": 1,
+  			"out.s3": 1,
+  			"out.s4": 1,
+  			"tx": 1,
+  			"blk": 1,
+  			"in.e.a":1,
+  			"_id": 1
+  		}
+  	}
   };
   var b64 = btoa(JSON.stringify(query));
-  var url = "https://bitdb.network/v2/q/" + b64;
+  var url = "https://bitdb.network/q/" + b64;
 
   var header = {
     headers: { key: "qz6qzfpttw44eqzqz8t2k26qxswhff79ng40pp2m44" }
@@ -147,24 +174,21 @@ function bitdb_get_magnetlinks(limit) {
     return r.json()
   }).then(function(r) {
 
-    console.log(r)
     document.getElementById('bitdb_output').innerHTML = ""
-
     document.getElementById('bitdb_output_container').style.display = "block"
 
-
-    if(r['confirmed'].length != 0){
+    if(r['c'].length != 0){
       var tr = document.createElement('tr');
-      for(i in r['confirmed']){
-        var tx = r['confirmed'][i]
+      for(i in r['c']){
+        var tx = r['c'][i]
         list_tx_results(tx,true);
       };
     };
 
-    if(r['unconfirmed'].length != 0){
+    if(r['u'].length != 0){
       var tr = document.createElement('tr');
-      for(i in r['unconfirmed']){
-        var tx = r['unconfirmed'][i]
+      for(i in r['u']){
+        var tx = r['u'][i]
         list_tx_results(tx,false);
       };
     };
@@ -183,23 +207,23 @@ function list_tx_results(tx,confirmed){
   var td_play = document.createElement('td');
 
 
-  td_txid.innerHTML = "<a class='result-tx-link' data-toggle='tooltip' title='Tx-Data: " + JSON.stringify(tx) + "' target='_blank' href='https://blockchair.com/bitcoin-cash/transaction/"+ tx.tx +"'><span class='glyphicon glyphicon-th'></span></a>";
+  td_txid.innerHTML = "<a class='result-tx-link' data-toggle='tooltip' title='Tx-Data: " + JSON.stringify(tx) + "' target='_blank' href='https://blockchair.com/bitcoin-cash/transaction/"+ tx.tx.h +"'><span class='glyphicon glyphicon-th'></span></a>";
   td_txid.style.width = "15px";
-  td_like.innerHTML = "<a title='like' onclick='like(`"+ tx.tx +"`)'><img class='like' id='like_"+ tx.tx +"' height='20' src='icons/heart_0.png'><span class='likecounter' id='like_counter_"+ tx.tx +"'>0</span></a>"
+  td_like.innerHTML = "<a title='like' onclick='like(`"+ tx.tx.h +"`)'><img class='like' id='like_"+ tx.tx.h +"' height='20' src='icons/heart_0.png'><span class='likecounter' id='like_counter_"+ tx.tx.h +"'>0</span></a>"
   // td_like.innerHTML = "<a title='like' href=''><img height='20' src='icons/heart_1.png'></a>"
-  td_sender.innerHTML = tx.senders[0].a
-  td_blockheight.innerHTML = (confirmed) ? (tx.block_index) : ("unconfirmed")
+  td_sender.innerHTML = tx.tx.h
+  td_blockheight.innerHTML = (confirmed) ? (tx.blk.i) : ("unconfirmed")
 
   // data = check_data(tx.s2,tx.s3,tx.s4);
-  var link = check_link(tx.s2)
-  var type = check_type(tx.s3)
-  var title = check_title(tx.s4)
+  var link = check_link(tx.out[0].s2)
+  var type = check_type(tx.out[0].s3)
+  var title = check_title(tx.out[0].s4)
   if (link && type && title){
     td_6a_magnethash.innerHTML = "<a class='' href='"+ link +"'><img height='15' src='icons/icons8-magnet-filled-50.png'>" + link + "</a>";
     td_6a_title.innerHTML = title;
     td_6a_type.innerHTML = type;
 
-    input_data = '"' + link + '","' + title + '","' + tx.senders[0].a + '"'
+    input_data = '"' + link + '","' + title + '","' + tx.tx.h + '"'
     td_play.innerHTML = "<button title='play with webtorrent' class='result-play' onclick='play(" + input_data + ");'><span class='glyphicon glyphicon-play-circle'></span></button>";
     td_play.style.width = "15px";
 
