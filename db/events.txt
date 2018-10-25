@@ -1,0 +1,35 @@
+-- memoLikeCounter Events
+
+DELIMITER |
+CREATE EVENT IF NOT EXISTS memoLikeCounter
+	ON SCHEDULE EVERY 10 second
+	DO
+		BEGIN
+			SET @start = NOW();
+      -- count Memo Likes
+      UPDATE
+			  theca.prefix_0xe901 AS e901
+			  INNER JOIN
+				(
+				  SELECT
+					     txhash,
+					     COUNT(*) AS cnt
+				  FROM
+					     theca.prefix_0x6d04
+				  WHERE
+					     new = 1
+				  GROUP BY
+					     txhash
+				) AS 6d04 ON e901.txid = 6d04.txhash
+			SET
+			  e901.likes = e901.likes + 6d04.cnt
+        -- 6d04.new = 0;
+			;
+
+      -- cleanup Memo Likes
+      DELETE FROM prefix_0x6d04 WHERE new = 1 AND timestamp < @start;
+
+      SET @end = NOW();
+      SET @duration = (SELECT timestampdiff(SECOND,@start,@end));
+			INSERT INTO event_scheduler(message,created_at,duration) VALUES('memoLikeCounter',@start,@duration);
+		END |

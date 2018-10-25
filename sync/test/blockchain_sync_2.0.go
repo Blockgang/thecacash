@@ -191,7 +191,7 @@ func updateMysql(prefix string, TxId string, blocktimestamp uint32, blockheight 
 }
 
 func insertIntoMysql(TxId string, hash string, data_type string, title string, blocktimestamp uint32, blockheight uint32, sender string) error {
-	sql_query := "INSERT INTO prefix_0xe901 VALUES(?,?,?,?,?,?,?)"
+	sql_query := "INSERT INTO prefix_0xe901 VALUES(?,?,?,?,?,?,?,NULL,0)"
 	insert, err := db.Prepare(sql_query)
 	defer insert.Close()
 	fmt.Println(TxId, hash, data_type, title, blocktimestamp, blockheight, sender)
@@ -201,7 +201,7 @@ func insertIntoMysql(TxId string, hash string, data_type string, title string, b
 }
 
 func insertMemoLikeIntoMysql(TxId string, txHash string, Sender string, BlockTimestamp uint32, BlockHeight uint32) error {
-	sql_query := "INSERT INTO prefix_0x6d04 VALUES(?,?,?,?,?)"
+	sql_query := "INSERT INTO prefix_0x6d04 VALUES(?,?,?,?,?,1,NULL,0)"
 	insert, err := db.Prepare(sql_query)
 	if err != nil {
 		fmt.Println(err)
@@ -318,42 +318,6 @@ func getConfirmed_E901(ScannerBlockHeight uint32, unconfirmedInDb []string) uint
 			}
 		}
 	}
-	// // UNCONFIRMED
-	// for i := range q.Unconfirmed {
-	// 	Sender := q.Confirmed[i].In[0].E.A
-	// 	TxId := q.Unconfirmed[i].Tx.H
-	// 	txOuts := q.Unconfirmed[i].Out
-	// 	var Prefix string
-	// 	var Hash string
-	// 	var Datatype string
-	// 	var Title string
-	// 	for a := range txOuts {
-	// 		if txOuts[a].B1 == "e901" {
-	// 			Prefix = txOuts[a].B1
-	// 			Hash = txOuts[a].S2
-	// 			Datatype = txOuts[a].S3
-	// 			Title = txOuts[a].S4
-	// 		}
-	// 	}
-	//
-	// 	if len(Prefix) != 0 && len(Hash) > 20 && len(Datatype) > 2 {
-	// 		exists := false
-	// 		for i := range unconfirmedInDb {
-	// 			uc_txid := unconfirmedInDb[i]
-	// 			if uc_txid == TxId {
-	// 				exists = true
-	// 			}
-	// 		}
-	// 		if !exists {
-	// 			err := insertIntoMysql(TxId, Hash, Datatype, Title, 0, 0, Sender)
-	// 			if err != nil {
-	// 				fmt.Println("INSERT FAILED (unconfirmed): error or duplicated db entry")
-	// 			} else {
-	// 				fmt.Println("INSERT OK (unconfirmed)==> ", TxId, Prefix, Hash, Datatype, Title)
-	// 			}
-	// 		}
-	// 	}
-	// }
 	return ScannerBlockHeight
 }
 
@@ -473,7 +437,7 @@ func main() {
 	ScannerBlockHeight_D604 := ScannerBlockHeight
 
 	var err error
-	db, err = sql.Open("mysql", "theca:theca123!@tcp(127.0.0.1:3306)/theca")
+	db, err = sql.Open("mysql", "root:8drRNG8RWw9FjzeJuavbY6f9@tcp(192.168.12.2:3306)/theca")
 	db.SetMaxOpenConns(50)
 	db.SetMaxIdleConns(30)
 
