@@ -6,6 +6,7 @@ CREATE EVENT IF NOT EXISTS memoLikeCounter
 	DO
 		BEGIN
 			SET @start = NOW();
+      -- SELECT theca.prefix_0x6d04.txid,theca.prefix_0xe901.txid,theca.prefix_0x6d04.txhash,count(theca.prefix_0x6d04.txid) AS cnt FROM theca.prefix_0xe901 INNER JOIN theca.prefix_0x6d04 ON theca.prefix_0xe901.txid = theca.prefix_0x6d04.txhash GROUP BY theca.prefix_0xe901.txid;
       -- count Memo Likes
       UPDATE
 			  theca.prefix_0xe901 AS e901
