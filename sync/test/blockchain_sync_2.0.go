@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -337,7 +338,7 @@ func getUnconfirmedMemoLikes(unconfirmedInDb []string) {
 		for a := range txOuts {
 			if txOuts[a].B1 == "6d04" {
 				Prefix = txOuts[a].B1
-				Hash = txOuts[a].B2
+				Hash = reverseHexString(txOuts[a].B2)
 			}
 		}
 
@@ -387,7 +388,7 @@ func getMemoLikes(ScannerBlockHeight uint32, unconfirmedInDb []string) uint32 {
 		for a := range txOuts {
 			if txOuts[a].B1 == "6d04" {
 				Prefix = txOuts[a].B1
-				Hash = txOuts[a].B2
+				Hash = reverseHexString(txOuts[a].B2)
 			}
 		}
 
@@ -429,6 +430,21 @@ func getBitDbData(query string) ([]byte, error) {
 	body, err := ioutil.ReadAll(res.Body)
 	// fmt.Println(url)
 	return body, err
+}
+
+func reverseByte(bytes []byte) []byte {
+	newBytes := make([]byte, len(bytes))
+	for i, j := 0, len(bytes)-1; i < j; i, j = i+1, j-1 {
+		newBytes[i], newBytes[j] = bytes[j], bytes[i]
+	}
+	return newBytes
+}
+
+func reverseHexString(str string) string {
+	hexString, _ := hex.DecodeString(str)
+	reversedHex := reverseByte(hexString)
+	reversedHexString := hex.EncodeToString(reversedHex)
+	return reversedHexString
 }
 
 func main() {
