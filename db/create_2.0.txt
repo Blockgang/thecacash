@@ -53,6 +53,7 @@ CREATE TABLE `prefix_0x6d01` (
   `blockheight` int(11) DEFAULT 0,
   `sender` varchar(60) NOT NULL,
   `new` bit(1) NOT NULL DEFAULT b'1',
+  `theca` bit(1) NOT NULL DEFAULT b'0',
   `timestamp` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`txid`)
 );
@@ -61,12 +62,13 @@ CREATE TABLE `prefix_0x6d01` (
 DROP TABLE IF EXISTS prefix_0x6d03;
 CREATE TABLE `prefix_0x6d03` (
   `txid` varchar(64) NOT NULL,
-  `txhash` varchar(30) NOT NULL,
+  `txhash` varchar(64) NOT NULL,
   `message` varchar(184) NOT NULL,
   `blocktimestamp` int(11) DEFAULT 0,
   `blockheight` int(11) DEFAULT 0,
   `sender` varchar(60) NOT NULL,
   `new` bit(1) NOT NULL DEFAULT b'1',
+  `theca` bit(1) NOT NULL DEFAULT b'0',
   `timestamp` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`txid`)
 );
@@ -96,6 +98,7 @@ CREATE TABLE `prefix_0x6d06` (
   `blockheight` int(11) DEFAULT 0,
   `sender` varchar(60) NOT NULL,
   `new` bit(1) NOT NULL DEFAULT b'1',
+  `theca` bit(1) NOT NULL DEFAULT b'0',
   `timestamp` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`txid`)
 );
@@ -109,6 +112,7 @@ CREATE TABLE `prefix_0x6d07` (
   `blockheight` int(11) DEFAULT 0,
   `sender` varchar(60) NOT NULL,
   `new` bit(1) NOT NULL DEFAULT b'1',
+  `theca` bit(1) NOT NULL DEFAULT b'0',
   `timestamp` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`txid`)
 );
