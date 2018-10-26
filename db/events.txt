@@ -8,24 +8,9 @@ CREATE EVENT IF NOT EXISTS memoLikeCounter
 			SET @start = NOW();
       -- SELECT theca.prefix_0x6d04.txid,theca.prefix_0xe901.txid,theca.prefix_0x6d04.txhash,count(theca.prefix_0x6d04.txid) AS cnt FROM theca.prefix_0xe901 INNER JOIN theca.prefix_0x6d04 ON theca.prefix_0xe901.txid = theca.prefix_0x6d04.txhash GROUP BY theca.prefix_0xe901.txid;
       -- count Memo Likes
-      UPDATE
-			  theca.prefix_0xe901 AS e901
-			  INNER JOIN
-				(
-				  SELECT
-					     txhash,
-					     COUNT(*) AS cnt
-				  FROM
-					     theca.prefix_0x6d04
-				  WHERE
-					     new = 1
-				  GROUP BY
-					     txhash
-				) AS 6d04 ON e901.txid = 6d04.txhash
-			SET
-			  e901.likes = e901.likes + 6d04.cnt
-        -- 6d04.new = 0;
-			;
+			UPDATE theca.prefix_0xe901 AS e901 SET e901.likes = e901.likes + (SELECT COUNT(*) AS cnt FROM theca.prefix_0x6d04 as pref WHERE pref.txhash = e901.txid AND new = 1 GROUP BY pref.txhash);
+			UPDATE theca.prefix_0x6d04 AS 6d04 SET 6d04.new = 0, 6d04.theca = IF(EXISTS(SELECT 1 FROM theca.prefix_0xe901 as pref WHERE pref.txid = 6d04.txhash), 1, 0);
+
 
       -- cleanup Memo Likes
       DELETE FROM prefix_0x6d04 WHERE new = 1 AND timestamp < @start;
