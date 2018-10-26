@@ -8,6 +8,7 @@ SET GLOBAL event_scheduler = on;
 SET SQL_SAFE_UPDATES = 0;
 
 -- Scheduler Events Table
+DROP TABLE IF EXISTS event_scheduler;
 CREATE TABLE `event_scheduler` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `message` varchar(255) NOT NULL,
@@ -19,6 +20,7 @@ CREATE TABLE `event_scheduler` (
 
 -------------- THECA --------------
 -- Theca Prefix
+DROP TABLE IF EXISTS prefix_0xe901;
 CREATE TABLE `prefix_0xe901` (
   `txid` varchar(64) NOT NULL,
   `hash` varchar(255) NOT NULL,
@@ -33,6 +35,7 @@ CREATE TABLE `prefix_0xe901` (
 );
 
 -- Theca User
+DROP TABLE IF EXISTS theca.users;
 CREATE TABLE `theca`.`users` (
   `username` VARCHAR(255) NOT NULL,
   `password` VARCHAR(255) NOT NULL,
@@ -42,6 +45,7 @@ CREATE TABLE `theca`.`users` (
 
 -------------- MEMO --------------
 -- Memo Set Name
+DROP TABLE IF EXISTS prefix_0x6d01;
 CREATE TABLE `prefix_0x6d01` (
   `txid` varchar(64) NOT NULL,
   `name` varchar(217) NOT NULL,
@@ -54,6 +58,7 @@ CREATE TABLE `prefix_0x6d01` (
 );
 
 -- Memo Reply
+DROP TABLE IF EXISTS prefix_0x6d03;
 CREATE TABLE `prefix_0x6d03` (
   `txid` varchar(64) NOT NULL,
   `txhash` varchar(30) NOT NULL,
@@ -67,6 +72,7 @@ CREATE TABLE `prefix_0x6d03` (
 );
 
 -- Memo Like
+DROP TABLE IF EXISTS prefix_0x6d04;
 CREATE TABLE `prefix_0x6d04` (
   `txid` varchar(64) NOT NULL,
   `txhash` varchar(64) NOT NULL,
@@ -82,6 +88,7 @@ CREATE TABLE `prefix_0x6d04` (
 );
 
 -- Memo Follow User
+DROP TABLE IF EXISTS prefix_0x6d06;
 CREATE TABLE `prefix_0x6d06` (
   `txid` varchar(64) NOT NULL,
   `address` varchar(35) NOT NULL,
@@ -94,6 +101,7 @@ CREATE TABLE `prefix_0x6d06` (
 );
 
 -- Memo Unfollow user
+DROP TABLE IF EXISTS prefix_0x6d07;
 CREATE TABLE `prefix_0x6d07` (
   `txid` varchar(64) NOT NULL,
   `address` varchar(35) NOT NULL,
