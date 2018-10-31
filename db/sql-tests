@@ -1,2 +1,0 @@
-
-SELECT count(*) FROM theca.prefix_0x6d04 LEFT JOIN theca.prefix_0xe901 ON theca.prefix_0xe901.txid =  theca.prefix_0x6d04.txhash WHERE theca.prefix_0xe901.txid = "5557b923364f6d1c191f72753e16615df34c10a44749158b1f72e438cff53a20";

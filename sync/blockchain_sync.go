@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -14,8 +15,8 @@ import (
 )
 
 type Query struct {
-	Unconfirmed []Transaction `json:"unconfirmed"`
-	Confirmed   []Transaction `json:"confirmed"`
+	Unconfirmed []Transaction `json:"u"`
+	Confirmed   []Transaction `json:"c"`
 }
 
 type Transaction struct {
@@ -50,12 +51,124 @@ type Id struct {
 	H string `json:"h"`
 }
 
-var db *sql.DB
+const c_query = `{
+	"v": 3,
+	"e": { "out.b1": "hex"  },
+	"q": {
+		"db": ["c"],
+		"find": {
+			"out.b1": "e901",
+			"out.b0": {
+				"op": 106
+			},
+			"blk.i": {
+				"$gte" : %d
+			}
+		},
+		"limit":100000,
+		"project": {
+			"out.b1": 1,
+			"out.s2": 1,
+			"out.s3": 1,
+			"out.s4": 1,
+			"tx.h": 1,
+			"blk.t": 1,
+			"blk.i": 1,
+			"in.e.a":1,
+			"_id": 0
+		}
+	}
+}`
 
-func selectUnconfirmedMysql() ([]string, error) {
+const uc_query = `{
+	"v": 3,
+	"e": { "out.b1": "hex"  },
+	"q": {
+		"db": ["u"],
+		"find": {
+			"out.b1": "e901",
+			"out.b0": {
+				"op": 106
+			}
+		},
+		"limit":100000,
+		"project": {
+			"out.b1": 1,
+			"out.s2": 1,
+			"out.s3": 1,
+			"out.s4": 1,
+			"tx.h": 1,
+			"in.e.a":1,
+			"_id": 0
+		}
+	}
+}`
+
+const memoLikesQuery = `{
+	"v": 3,
+	"e": {
+		"out.b1": "hex",
+		"out.b2": "hex"
+	},
+	"q": {
+		"db": ["c"],
+		"find": {
+			"out.b1": "6d04",
+			"out.b0": {
+				"op": 106
+			},
+			"blk.i": {
+				"$gte" : %d
+			}
+		},
+		"limit":100000,
+		"project": {
+			"out.b1": 1,
+			"out.b2": 1,
+			"tx.h": 1,
+			"blk.t": 1,
+			"blk.i": 1,
+			"in.e.a":1,
+			"_id": 0
+		}
+	}
+}`
+
+const uc_memoLikesQuery = `{
+	"v": 3,
+	"e": {
+		"out.b1": "hex",
+		"out.b2": "hex"
+	},
+	"q": {
+		"db": ["u"],
+		"find": {
+			"out.b1": "6d04",
+			"out.b0": {
+				"op": 106
+			}
+		},
+		"limit":100000,
+		"project": {
+			"out.b1": 1,
+			"out.b2": 1,
+			"tx.h": 1,
+			"in.e.a":1,
+			"_id": 0
+		}
+	}
+}`
+
+var db *sql.DB
+var q Query
+var ScannerBlockHeight uint32
+var LastScannerBlockHeight uint32
+
+func selectUnconfirmedMysql(prefix string) ([]string, error) {
 	var uc_txs []string
-	sql_query_uc := "SELECT txid FROM prefix_0xe901 WHERE blockheight = 0"
-	uc_query, err := db.Query(sql_query_uc)
+	query := "SELECT txid FROM prefix_%s WHERE blockheight = 0"
+	query = fmt.Sprintf(query, prefix)
+	uc_query, err := db.Query(query)
 	if err != nil {
 		return uc_txs, err
 	}
@@ -68,81 +181,88 @@ func selectUnconfirmedMysql() ([]string, error) {
 	}
 	return uc_txs, err
 }
-func updateMysql(TxId string, blocktimestamp uint32, blockheight uint32) error {
-	sql_update := "UPDATE prefix_0xe901 SET blockheight=?,blocktimestamp=? where txid=?"
+
+func updateMysql(prefix string, TxId string, blocktimestamp uint32, blockheight uint32) error {
+	sql_update := "UPDATE prefix_0x%s SET blockheight=?,blocktimestamp=? where txid=?"
+	sql_update = fmt.Sprintf(sql_update, prefix)
 	update, err := db.Prepare(sql_update)
 	defer update.Close()
-
 	_, err = update.Exec(blockheight, blocktimestamp, TxId)
 	return err
 }
 
-func insertIntoMysql(TxId string, prefix string, hash string, data_type string, title string, blocktimestamp uint32, blockheight uint32, sender string) error {
-	sql_query := "INSERT INTO prefix_0xe901 VALUES(?,?,?,?,?,?,?,?)"
+func insertIntoMysql(TxId string, hash string, data_type string, title string, blocktimestamp uint32, blockheight uint32, sender string) error {
+	sql_query := "INSERT INTO prefix_0xe901 (txid,hash,type,title,blocktimestamp,blockheight,sender) VALUES(?,?,?,?,?,?,?)"
 	insert, err := db.Prepare(sql_query)
 	defer insert.Close()
-	_, err = insert.Query(TxId, prefix, hash, data_type, title, blocktimestamp, blockheight, sender)
+	_, err = insert.Exec(TxId, hash, data_type, title, blocktimestamp, blockheight, sender)
 	return err
 }
 
 func insertMemoLikeIntoMysql(TxId string, txHash string, Sender string, BlockTimestamp uint32, BlockHeight uint32) error {
-	sql_query := "INSERT INTO prefix_0x6d04 VALUES(?,?,?,?,?)"
-	fmt.Println(TxId, txHash, BlockTimestamp, BlockHeight, Sender)
-	time.Sleep(10 * time.Millisecond) //todo: ansonsten too many connections
+	sql_query := "INSERT INTO prefix_0x6d04 (txid,txhash,blocktimestamp,blockheight,sender) VALUES(?,?,?,?,?)"
 	insert, err := db.Prepare(sql_query)
-	if err != nil {
-		fmt.Println(err)
-	}
-	_, err = insert.Query(TxId, txHash, BlockTimestamp, BlockHeight, Sender)
-	insert.Close()
+	defer insert.Close()
+	_, err = insert.Exec(TxId, txHash, BlockTimestamp, BlockHeight, Sender)
 	return err
 }
 
-func getMemoLikes(ScannerBlockHeight uint32) {
-	var q Query
-	var memoLikesQuery = `{
-		"v": 2,
-		"e": {
-			"out.b1": "hex",
-			"out.b2": "hex"
-		},
-		"q": {
-			"find": {
-				"out.b1": "6d04",
-				"out.b0": {
-					"op": 106
-				},
-				"blk.i": {
-					"$gte" : %d
-				}
-
-			},
-			"limit":5000,
-			"project": {
-				"out.b1": 1,
-				"out.b2": 1,
-				"tx.h": 1,
-				"blk.t": 1,
-				"blk.i": 1,
-				"in.e.a":1,
-				"_id": 0
-			}
-		}
-	}`
-
-	memoLikesQuery = fmt.Sprintf(memoLikesQuery, ScannerBlockHeight)
-
-	b64_query := base64.StdEncoding.EncodeToString([]byte(memoLikesQuery))
-	url := "https://bitdb.network/q/" + b64_query
-	client := &http.Client{}
-	req, _ := http.NewRequest("GET", url, nil)
-	req.Header.Set("key", "qz6qzfpttw44eqzqz8t2k26qxswhff79ng40pp2m44")
-	res, _ := client.Do(req)
-	body, err := ioutil.ReadAll(res.Body)
+func getUnconfirmed_E901(unconfirmedInDb []string) {
+	uc_body, err := getBitDbData(uc_query)
 	if err != nil {
 		log.Fatalln(err)
 	}
-	json.Unmarshal(body, &q)
+
+	json.Unmarshal(uc_body, &q)
+
+	for i := range q.Unconfirmed {
+		Sender := q.Unconfirmed[i].In[0].E.A
+		TxId := q.Unconfirmed[i].Tx.H
+		txOuts := q.Unconfirmed[i].Out
+		var Prefix string
+		var Hash string
+		var Datatype string
+		var Title string
+		for a := range txOuts {
+			if txOuts[a].B1 == "e901" {
+				Prefix = txOuts[a].B1
+				Hash = txOuts[a].S2
+				Datatype = txOuts[a].S3
+				Title = txOuts[a].S4
+			}
+		}
+
+		if len(Prefix) != 0 && len(Hash) > 20 && len(Datatype) > 2 {
+			exists := false
+			for i := range unconfirmedInDb {
+				uc_txid := unconfirmedInDb[i]
+				if uc_txid == TxId {
+					exists = true
+				}
+			}
+			if !exists {
+				err := insertIntoMysql(TxId, Hash, Datatype, Title, 0, 0, Sender)
+				if err != nil {
+					fmt.Println("UNCONFIRMED Theca 0x9e01 INSERT FAILED/DUPLICATED ==> ", err)
+				} else {
+					fmt.Println("UNCONFIRMED Theca 0x9e01 INSERT OK ==> ", TxId)
+				}
+			}
+		}
+	}
+}
+
+func getConfirmed_E901(ScannerBlockHeight uint32, unconfirmedInDb []string) uint32 {
+	query := fmt.Sprintf(c_query, ScannerBlockHeight)
+	body, err := getBitDbData(query)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	err = json.Unmarshal(body, &q)
+	if err != nil {
+		fmt.Println(err)
+	}
 
 	var BlockHeight uint32
 
@@ -152,245 +272,225 @@ func getMemoLikes(ScannerBlockHeight uint32) {
 		txOuts := q.Confirmed[i].Out
 		BlockTimestamp := q.Confirmed[i].Blk.T
 		BlockHeight = q.Confirmed[i].Blk.I
-		// if BlockHeight > ScannerBlockHeight {
-		// 	ScannerBlockHeight = BlockHeight + 1
-		// }
+		if BlockHeight > ScannerBlockHeight {
+			ScannerBlockHeight = BlockHeight + 1
+		}
+		var Prefix string
+		var Hash string
+		var Datatype string
+		var Title string
+		for a := range txOuts {
+			if txOuts[a].B1 == "e901" {
+				Prefix = txOuts[a].B1
+				Hash = txOuts[a].S2
+				Datatype = txOuts[a].S3
+				Title = txOuts[a].S4
+			}
+		}
+
+		if len(Prefix) != 0 && len(Hash) > 20 && len(Datatype) > 2 {
+			exists := false
+			for i := range unconfirmedInDb {
+				uc_txid := unconfirmedInDb[i]
+				if uc_txid == TxId {
+					exists = true
+				}
+			}
+
+			if exists {
+				err := updateMysql(Prefix, TxId, BlockTimestamp, BlockHeight)
+				if err != nil {
+					fmt.Println("CONFIRMED Theca 0xe901 UPDATE FAILED ==> ", err)
+				} else {
+					fmt.Println("CONFIRMED Theca 0xe901 UPDATE OK ==> ", TxId)
+				}
+			} else {
+				err := insertIntoMysql(TxId, Hash, Datatype, Title, BlockTimestamp, BlockHeight, Sender)
+				if err != nil {
+					fmt.Println("CONFIRMED Theca 0xe901 INSERT FAILED/DUPLICATED ==> ", err)
+				} else {
+					fmt.Println("CONFIRMED Theca 0xe901 INSERT OK ==>", TxId)
+				}
+			}
+		}
+	}
+	return ScannerBlockHeight
+}
+
+func getUnconfirmedMemoLikes(unconfirmedInDb []string) {
+	body, err := getBitDbData(uc_memoLikesQuery)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	json.Unmarshal(body, &q)
+
+	for i := range q.Unconfirmed {
+		Sender := q.Unconfirmed[i].In[0].E.A
+		TxId := q.Unconfirmed[i].Tx.H
+		txOuts := q.Unconfirmed[i].Out
 		var Prefix string
 		var Hash string
 		for a := range txOuts {
 			if txOuts[a].B1 == "6d04" {
 				Prefix = txOuts[a].B1
-				Hash = txOuts[a].B2
+				Hash, _ = reverseHexStringBytes(txOuts[a].B2)
 			}
 		}
 
 		if len(Prefix) != 0 && len(Hash) > 20 {
 			exists := false
-			//todo: unconfirmed memo likes
-			// for i := range unconfirmedInDb {
-			// 	uc_txid := unconfirmedInDb[i]
-			// 	if uc_txid == TxId {
-			// 		exists = true
-			// 	}
-			// }
-
-			if exists {
-				err := updateMysql(TxId, BlockTimestamp, BlockHeight)
-				if err != nil {
-					fmt.Println("UPDATE FAILED (confirmed) error")
-				} else {
-					fmt.Println("UPDATE OK (confirmed)==> ", TxId, Hash, Sender, BlockTimestamp, BlockHeight)
+			for i := range unconfirmedInDb {
+				uc_txid := unconfirmedInDb[i]
+				if uc_txid == TxId {
+					exists = true
 				}
-			} else {
-				err := insertMemoLikeIntoMysql(TxId, Hash, Sender, BlockTimestamp, BlockHeight)
+			}
+			if !exists && !isUnconfirmedInDb(TxId) {
+				err := insertMemoLikeIntoMysql(TxId, Hash, Sender, 0, 0)
 				if err != nil {
-					fmt.Println("INSERT DUP / FAILED (confirmed) error or duplicated db entry")
+					fmt.Println("UNCONFIRMED Memo 0x6d04 INSERT FAILED ==>", err)
 				} else {
-					fmt.Println("INSERT OK (confirmed)==> ", TxId, Hash, Sender, BlockTimestamp, BlockHeight)
+					fmt.Println("UNCONFIRMED Memo 0x6d04 INSERT OK ==> ", TxId, " likes ", Hash)
 				}
 			}
 		}
 	}
 }
 
+func getMemoLikes(ScannerBlockHeight uint32, unconfirmedInDb []string) uint32 {
+	query := fmt.Sprintf(memoLikesQuery, ScannerBlockHeight)
+	body, err := getBitDbData(query)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	err = json.Unmarshal(body, &q)
+	fmt.Println(err)
+
+	var BlockHeight uint32
+
+	for i := range q.Confirmed {
+		Sender := q.Confirmed[i].In[0].E.A
+		TxId := q.Confirmed[i].Tx.H
+		txOuts := q.Confirmed[i].Out
+		BlockTimestamp := q.Confirmed[i].Blk.T
+		BlockHeight = q.Confirmed[i].Blk.I
+		if BlockHeight > ScannerBlockHeight {
+			ScannerBlockHeight = BlockHeight + 1
+		}
+		var Prefix string
+		var Hash string
+		for a := range txOuts {
+			if txOuts[a].B1 == "6d04" {
+				Prefix = txOuts[a].B1
+				Hash, _ = reverseHexStringBytes(txOuts[a].B2)
+			}
+		}
+
+		if len(Prefix) != 0 && len(Hash) > 20 {
+			exists := false
+			for i := range unconfirmedInDb {
+				uc_txid := unconfirmedInDb[i]
+				if uc_txid == TxId {
+					exists = true
+				}
+			}
+			if exists {
+				err := updateMysql(Prefix, TxId, BlockTimestamp, BlockHeight)
+				if err != nil {
+					fmt.Println("CONFIRMED Memo 0x6d04 UPDATE FAILED ==> ", err)
+				} else {
+					fmt.Println("CONFIRMED Memo 0x6d04 UPDATE OK ==> ", TxId)
+				}
+			} else {
+				err := insertMemoLikeIntoMysql(TxId, Hash, Sender, BlockTimestamp, BlockHeight)
+				if err != nil {
+					fmt.Println("CONFIRMED Memo 0x6d04 INSERT FAILED/DUPLICATED ==> ", err)
+				} else {
+					fmt.Println("CONFIRMED Memo 0x6d04 INSERT OK ==> ", TxId, " likes ", Hash)
+				}
+			}
+		}
+	}
+	return ScannerBlockHeight
+}
+
+func getBitDbData(query string) ([]byte, error) {
+	b64_query := base64.StdEncoding.EncodeToString([]byte(query))
+	url := "https://bitdb.network/q/" + b64_query
+	client := &http.Client{}
+	req, _ := http.NewRequest("GET", url, nil)
+	req.Header.Set("key", "qz6qzfpttw44eqzqz8t2k26qxswhff79ng40pp2m44")
+	res, _ := client.Do(req)
+	body, err := ioutil.ReadAll(res.Body)
+	// fmt.Println(url)
+	return body, err
+}
+
+var ucInDb []string
+
+func isUnconfirmedInDb(txid string) bool {
+	exists := false
+	for i := range ucInDb {
+		uc_txid := ucInDb[i]
+		if uc_txid == txid {
+			exists = true
+		}
+	}
+	if exists == false {
+		ucInDb = append(ucInDb, txid)
+	}
+	return exists
+}
+
+func reverseHexStringBytes(hexString string) (string, error) {
+	hexBytes, err := hex.DecodeString(hexString)
+	runes := []byte(hexBytes)
+	for i, j := 0, len(runes)-1; i < j; i, j = i+1, j-1 {
+		runes[i], runes[j] = runes[j], runes[i]
+	}
+	reversedHexString := hex.EncodeToString(runes)
+	return string(reversedHexString), err
+}
+
 func main() {
+	ScannerBlockHeight = 550255
+	ScannerBlockHeight_E901 := ScannerBlockHeight
+	ScannerBlockHeight_D604 := ScannerBlockHeight
+
 	var err error
-	db, err = sql.Open("mysql", "root:8drRNG8RWw9FjzeJuavbY6f9@tcp(192.168.12.2:3306)/theca")
-	//db.SetMaxOpenConns(10000)
+	db, err = sql.Open("mysql", "theca:theca123!@tcp(127.0.0.1:3306)/theca")
+	db.SetMaxOpenConns(50)
+	db.SetMaxIdleConns(30)
+
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer db.Close()
 
-	var q Query
-	var ScannerBlockHeight uint32
-	var LastScannerBlockHeight uint32
-	ScannerBlockHeight = 550255
-	LastScannerBlockHeight = 0
-
 	fmt.Println("Start ScannerBlockHeight: >", ScannerBlockHeight)
 
 	loop := true
 	for loop {
-		//list of unconfirmed tx in db
-		unconfirmedInDb, err := selectUnconfirmedMysql()
-
-		var query = `{
-		  "v": 2,
-		  "e": { "out.b1": "hex"  },
-		  "q": {
-		    "find": {
-		      "out.b1": "e901",
-		      "out.b0": {
-		        "op": 106
-		      },
-		      "blk.i": {
-		        "$gte" : %d
-		      }
-
-		    },
-		    "project": {
-		      "out.b1": 1,
-		      "out.s2": 1,
-		      "out.s3": 1,
-		      "out.s4": 1,
-		      "tx.h": 1,
-					"blk.t": 1,
-					"blk.i": 1,
-					"in.e.a":1,
-		      "_id": 0
-		    }
-		  }
-		}`
-
-		query = fmt.Sprintf(query, ScannerBlockHeight)
-
-		if LastScannerBlockHeight != ScannerBlockHeight {
-			fmt.Println("ScannerHeight: >", ScannerBlockHeight)
-			LastScannerBlockHeight = ScannerBlockHeight
-		}
-
-		//url encoded query : blocksize greater than 550'000
-		b64_query := base64.StdEncoding.EncodeToString([]byte(query))
-		url := "https://bitdb.network/q/" + b64_query
-		client := &http.Client{}
-		req, _ := http.NewRequest("GET", url, nil)
-		req.Header.Set("key", "qz6qzfpttw44eqzqz8t2k26qxswhff79ng40pp2m44")
-		res, _ := client.Do(req)
-		body, err := ioutil.ReadAll(res.Body)
+		unconfirmedInDb_E901, err := selectUnconfirmedMysql("0xe901")
 		if err != nil {
-			log.Fatalln(err)
+			fmt.Println(err)
 		}
-
-		json.Unmarshal(body, &q)
-
-		var BlockHeight uint32
-
-		for i := range q.Confirmed {
-			Sender := q.Confirmed[i].In[0].E.A
-			TxId := q.Confirmed[i].Tx.H
-			txOuts := q.Confirmed[i].Out
-			BlockTimestamp := q.Confirmed[i].Blk.T
-			BlockHeight = q.Confirmed[i].Blk.I
-			if BlockHeight > ScannerBlockHeight {
-				ScannerBlockHeight = BlockHeight + 1
-			}
-			var Prefix string
-			var Hash string
-			var Datatype string
-			var Title string
-			for a := range txOuts {
-				if txOuts[a].B1 == "e901" {
-					Prefix = txOuts[a].B1
-					Hash = txOuts[a].S2
-					Datatype = txOuts[a].S3
-					Title = txOuts[a].S4
-				}
-			}
-
-			if len(Prefix) != 0 && len(Hash) > 20 && len(Datatype) > 2 {
-				exists := false
-				for i := range unconfirmedInDb {
-					uc_txid := unconfirmedInDb[i]
-					if uc_txid == TxId {
-						exists = true
-					}
-				}
-
-				if exists {
-					err := updateMysql(TxId, BlockTimestamp, BlockHeight)
-					if err != nil {
-						fmt.Println("UPDATE FAILED (confirmed) error")
-					} else {
-						fmt.Println("UPDATE OK (confirmed)==> ", TxId, Prefix, Hash, Datatype, Title, BlockTimestamp, BlockHeight)
-					}
-				} else {
-					err := insertIntoMysql(TxId, Prefix, Hash, Datatype, Title, BlockTimestamp, BlockHeight, Sender)
-					if err != nil {
-						fmt.Println("INSERT DUP / FAILED (confirmed) error or duplicated db entry")
-					} else {
-						fmt.Println("INSERT OK (confirmed)==> ", TxId, Prefix, Hash, Datatype, Title, BlockTimestamp, BlockHeight)
-					}
-				}
-			}
-		}
-
-		// unconfirmed transactions
-		var uc_query = `{
-			"v": 2,
-			"e": { "out.b1": "hex"  },
-			"q": {
-				"find": {
-					"out.b1": "e901",
-					"out.b0": {
-						"op": 106
-					}
-				},
-				"project": {
-					"out.b1": 1,
-					"out.s2": 1,
-					"out.s3": 1,
-					"out.s4": 1,
-					"tx.h": 1,
-					"in.e.a":1,
-					"_id": 0
-				}
-			}
-		}`
-
-		//url encoded query : blocksize greater than 550'000
-		b64_uc_query := base64.StdEncoding.EncodeToString([]byte(uc_query))
-		uc_url := "https://bitdb.network/q/" + b64_uc_query
-		uc_client := &http.Client{}
-		uc_req, _ := http.NewRequest("GET", uc_url, nil)
-		uc_req.Header.Set("key", "qz6qzfpttw44eqzqz8t2k26qxswhff79ng40pp2m44")
-
-		uc_res, _ := uc_client.Do(uc_req)
-
-		uc_body, err := ioutil.ReadAll(uc_res.Body)
-
+		unconfirmedInDb_6D04, err := selectUnconfirmedMysql("0x6d04")
 		if err != nil {
-			log.Fatalln(err)
+			fmt.Println(err)
 		}
 
-		json.Unmarshal(uc_body, &q)
-		for i := range q.Unconfirmed {
-			Sender := q.Confirmed[i].In[0].E.A
-			TxId := q.Unconfirmed[i].Tx.H
-			txOuts := q.Unconfirmed[i].Out
-			var Prefix string
-			var Hash string
-			var Datatype string
-			var Title string
-			for a := range txOuts {
-				if txOuts[a].B1 == "e901" {
-					Prefix = txOuts[a].B1
-					Hash = txOuts[a].S2
-					Datatype = txOuts[a].S3
-					Title = txOuts[a].S4
-				}
-			}
+		fmt.Println("E901 Confirmed ScannerHeight: >", ScannerBlockHeight_E901)
+		ScannerBlockHeight_E901 = getConfirmed_E901(ScannerBlockHeight_E901, unconfirmedInDb_E901)
 
-			if len(Prefix) != 0 && len(Hash) > 20 && len(Datatype) > 2 {
-				exists := false
-				for i := range unconfirmedInDb {
-					uc_txid := unconfirmedInDb[i]
-					if uc_txid == TxId {
-						exists = true
-					}
-				}
-				if !exists {
-					err := insertIntoMysql(TxId, Prefix, Hash, Datatype, Title, 0, 0, Sender)
-					if err != nil {
-						fmt.Println("INSERT FAILED (unconfirmed): error or duplicated db entry")
-					} else {
-						fmt.Println("INSERT OK (unconfirmed)==> ", TxId, Prefix, Hash, Datatype, Title)
-					}
-				}
-			}
-		}
-		// get memo likes
-		//getMemoLikes(ScannerBlockHeight)
+		getUnconfirmed_E901(unconfirmedInDb_E901)
+
+		fmt.Println("MEMO Confirmed D604 ScannerHeight: >", ScannerBlockHeight_D604)
+		ScannerBlockHeight_D604 = getMemoLikes(ScannerBlockHeight_D604, unconfirmedInDb_6D04)
+
+		getUnconfirmedMemoLikes(unconfirmedInDb_6D04)
+
 		time.Sleep(10 * time.Second)
 	}
 
