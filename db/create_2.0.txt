@@ -82,8 +82,8 @@ CREATE TABLE `prefix_0x6d04` (
   `blockheight` int(11) DEFAULT 0,
   `sender` varchar(60) NOT NULL,
   `new` bit(1) NOT NULL DEFAULT b'1',
-  `timestamp` timestamp NOT NULL DEFAULT current_timestamp(),
   `theca` bit(1) NOT NULL DEFAULT b'0',
+  `timestamp` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`txid`),
   KEY `TXHASH` (`txhash`),
   KEY `NEW` (`new`)
