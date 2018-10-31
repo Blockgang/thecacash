@@ -12,6 +12,7 @@ import (
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/tidwall/gjson"
 )
 
 type Query struct {
@@ -50,6 +51,18 @@ type Info struct {
 type Id struct {
 	H string `json:"h"`
 }
+
+const bitdbBlockheight_query = `{
+  "v": 3,
+  "q": {
+    "db": ["c"],
+    "find": { },
+    "limit": 1
+  },
+  "r": {
+    "f": "[.[] | .blk | { current_blockheight: .i} ]"
+  }
+}`
 
 const c_query = `{
 	"v": 3,
@@ -240,7 +253,7 @@ func getUnconfirmed_E901(unconfirmedInDb []string) {
 					exists = true
 				}
 			}
-			if !exists {
+			if !exists && !isUnconfirmedInDb(TxId) {
 				err := insertIntoMysql(TxId, Hash, Datatype, Title, 0, 0, Sender)
 				if err != nil {
 					fmt.Println("UNCONFIRMED Theca 0x9e01 INSERT FAILED/DUPLICATED ==> ", err)
@@ -297,7 +310,7 @@ func getConfirmed_E901(ScannerBlockHeight uint32, unconfirmedInDb []string) uint
 				}
 			}
 
-			if exists {
+			if exists && !isUnconfirmedInDb(TxId) {
 				err := updateMysql(Prefix, TxId, BlockTimestamp, BlockHeight)
 				if err != nil {
 					fmt.Println("CONFIRMED Theca 0xe901 UPDATE FAILED ==> ", err)
@@ -364,8 +377,7 @@ func getMemoLikes(ScannerBlockHeight uint32, unconfirmedInDb []string) uint32 {
 		log.Fatalln(err)
 	}
 
-	err = json.Unmarshal(body, &q)
-	fmt.Println(err)
+	json.Unmarshal(body, &q)
 
 	var BlockHeight uint32
 
@@ -395,7 +407,7 @@ func getMemoLikes(ScannerBlockHeight uint32, unconfirmedInDb []string) uint32 {
 					exists = true
 				}
 			}
-			if exists {
+			if exists && !isUnconfirmedInDb(TxId) {
 				err := updateMysql(Prefix, TxId, BlockTimestamp, BlockHeight)
 				if err != nil {
 					fmt.Println("CONFIRMED Memo 0x6d04 UPDATE FAILED ==> ", err)
@@ -415,6 +427,14 @@ func getMemoLikes(ScannerBlockHeight uint32, unconfirmedInDb []string) uint32 {
 	return ScannerBlockHeight
 }
 
+func queryBitdb(query string) ([]byte, error) {
+	response, err := getBitDbData(query)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	return response, err
+}
+
 func getBitDbData(query string) ([]byte, error) {
 	b64_query := base64.StdEncoding.EncodeToString([]byte(query))
 	url := "https://bitdb.network/q/" + b64_query
@@ -423,7 +443,6 @@ func getBitDbData(query string) ([]byte, error) {
 	req.Header.Set("key", "qz6qzfpttw44eqzqz8t2k26qxswhff79ng40pp2m44")
 	res, _ := client.Do(req)
 	body, err := ioutil.ReadAll(res.Body)
-	// fmt.Println(url)
 	return body, err
 }
 
@@ -453,12 +472,30 @@ func reverseHexStringBytes(hexString string) (string, error) {
 	return string(reversedHexString), err
 }
 
+func getBlockheight() uint64 {
+	response, err := queryBitdb(bitdbBlockheight_query)
+	if err != nil {
+		log.Fatal(err)
+	}
+	var currentBlockheight uint64
+
+	json := gjson.Get(string(response), "c.#.current_blockheight")
+	for _, name := range json.Array() {
+		currentBlockheight = name.Uint()
+	}
+	return currentBlockheight
+}
+
 func main() {
+	var err error
+
+	currentBlockheight := getBlockheight()
+	fmt.Println("Currentblockheight: ", currentBlockheight)
+
 	ScannerBlockHeight = 550255
 	ScannerBlockHeight_E901 := ScannerBlockHeight
 	ScannerBlockHeight_D604 := ScannerBlockHeight
 
-	var err error
 	db, err = sql.Open("mysql", "theca:theca123!@tcp(127.0.0.1:3306)/theca")
 	db.SetMaxOpenConns(50)
 	db.SetMaxIdleConns(30)
@@ -481,12 +518,12 @@ func main() {
 			fmt.Println(err)
 		}
 
-		fmt.Println("E901 Confirmed ScannerHeight: >", ScannerBlockHeight_E901)
+		fmt.Println("THECA 0xE901 Confirmed ScannerHeight: >", ScannerBlockHeight_E901)
 		ScannerBlockHeight_E901 = getConfirmed_E901(ScannerBlockHeight_E901, unconfirmedInDb_E901)
 
 		getUnconfirmed_E901(unconfirmedInDb_E901)
 
-		fmt.Println("MEMO Confirmed D604 ScannerHeight: >", ScannerBlockHeight_D604)
+		fmt.Println("MEMO Confirmed 0xD604 ScannerHeight: >", ScannerBlockHeight_D604)
 		ScannerBlockHeight_D604 = getMemoLikes(ScannerBlockHeight_D604, unconfirmedInDb_6D04)
 
 		getUnconfirmedMemoLikes(unconfirmedInDb_6D04)
