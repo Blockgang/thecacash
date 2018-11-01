@@ -626,15 +626,15 @@ func main() {
 			fmt.Println(err)
 		}
 
-		fmt.Println("THECA 0xE901 Confirmed ScannerHeight: >", ScannerBlockHeight_E901)
+		fmt.Println("THECA 0xE901 Confirmed ScannerHeight: > ", ScannerBlockHeight_E901)
 		ScannerBlockHeight_E901 = getConfirmed_E901(ScannerBlockHeight_E901, unconfirmedInDb_E901)
 
 		getUnconfirmed_E901(unconfirmedInDb_E901)
 
-		fmt.Println("MEMO 0xD603 ScannerHeight: >", ScannerBlockHeight_D603)
+		fmt.Println("MEMO 0xD603 ScannerHeight: > ", ScannerBlockHeight_D603)
 		getMemoComments(ScannerBlockHeight_D603, unconfirmedInDb_6D03)
 
-		fmt.Println("MEMO Confirmed 0xD604 ScannerHeight: >", ScannerBlockHeight_D604)
+		fmt.Println("MEMO Confirmed 0xD604 ScannerHeight: > ", ScannerBlockHeight_D604)
 		ScannerBlockHeight_D604 = getMemoLikes(ScannerBlockHeight_D604, unconfirmedInDb_6D04)
 
 		getUnconfirmedMemoLikes(unconfirmedInDb_6D04)
