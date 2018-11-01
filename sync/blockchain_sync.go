@@ -172,6 +172,24 @@ const uc_memoLikesQuery = `{
 	}
 }`
 
+const memoCommentsQuery = `{
+	"v": 3,
+	"q": {
+		"db": ["c"],
+		"find": {
+			"out.b0": {"op":106},
+			"out.h1": "6d03",
+			"blk.i": {
+				"$gte" : %d
+			}
+		},
+		"limit": 100
+	},
+  "r": {
+    "f": "[ .[] | {txid: .tx.h, sender: .in[0].e.a, txhash: .out[1].h2, prefix: .out[1].h1, prefix: .out[1].b3, blockheight:.blk.i, blocktimestamp:.blk.t} ]"
+  }
+}`
+
 var db *sql.DB
 var q Query
 var ScannerBlockHeight uint32
