@@ -173,20 +173,18 @@ const uc_memoLikesQuery = `{
 }`
 
 const memoCommentsQuery = `{
-	"v": 3,
-	"q": {
-		"db": ["c"],
-		"find": {
-			"out.b0": {"op":106},
+  "v": 3,
+  "q": {
+    "find": {
 			"out.h1": "6d03",
 			"blk.i": {
 				"$gte" : %d
 			}
 		},
-		"limit": 100
-	},
+    "limit": 10
+  },
   "r": {
-    "f": "[ .[] | {txid: .tx.h, sender: .in[0].e.a, txhash: .out[1].h2, prefix: .out[1].h1, prefix: .out[1].b3, blockheight:.blk.i, blocktimestamp:.blk.t} ]"
+    "f": "[.[] | .tx.h as $tx | .in as $in | .blk as $blk | .out[] | select(.b0.op? and .b0.op == 106) | {prefix: .h1, txhash: .h2, message: .s3, txid: $tx, sender: $in[0].e.a, blockheight: $blk.i, blocktimestamp: $blk.t}]"
   }
 }`
 
@@ -446,6 +444,65 @@ func getMemoLikes(ScannerBlockHeight uint32, unconfirmedInDb []string) uint32 {
 	return ScannerBlockHeight
 }
 
+func getMemoComments(ScannerBlockHeight uint32, unconfirmedInDb []string) uint32 {
+	query := fmt.Sprintf(memoCommentsQuery, ScannerBlockHeight)
+	fmt.Println(query)
+	response, err := getBitDbData(query)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	json.Unmarshal(response, &q)
+	fmt.Println(string(response))
+
+	// var BlockHeight uint32
+	//
+	// for i := range q.Confirmed {
+	// 	Sender := q.Confirmed[i].In[0].E.A
+	// 	TxId := q.Confirmed[i].Tx.H
+	// 	txOuts := q.Confirmed[i].Out
+	// 	BlockTimestamp := q.Confirmed[i].Blk.T
+	// 	BlockHeight = q.Confirmed[i].Blk.I
+	// 	if BlockHeight > ScannerBlockHeight {
+	// 		ScannerBlockHeight = BlockHeight + 1
+	// 	}
+	// 	var Prefix string
+	// 	var Hash string
+	// 	for a := range txOuts {
+	// 		if txOuts[a].B1 == "6d04" {
+	// 			Prefix = txOuts[a].B1
+	// 			Hash, _ = reverseHexStringBytes(txOuts[a].B2)
+	// 		}
+	// 	}
+	//
+	// 	if len(Prefix) != 0 && len(Hash) > 20 {
+	// 		exists := false
+	// 		for i := range unconfirmedInDb {
+	// 			uc_txid := unconfirmedInDb[i]
+	// 			if uc_txid == TxId {
+	// 				exists = true
+	// 			}
+	// 		}
+	// 		if exists && !isUnconfirmedInDb(TxId) {
+	// 			err := updateMysql(Prefix, TxId, BlockTimestamp, BlockHeight)
+	// 			if err != nil {
+	// 				fmt.Println("CONFIRMED Memo 0x6d04 UPDATE FAILED ==> ", err)
+	// 			} else {
+	// 				fmt.Println("CONFIRMED Memo 0x6d04 UPDATE OK ==> ", TxId)
+	// 			}
+	// 		} else {
+	// 			err := insertMemoLikeIntoMysql(TxId, Hash, Sender, BlockTimestamp, BlockHeight)
+	// 			if err != nil {
+	// 				fmt.Println("CONFIRMED Memo 0x6d04 INSERT FAILED/DUPLICATED ==> ", err)
+	// 			} else {
+	// 				fmt.Println("CONFIRMED Memo 0x6d04 INSERT OK ==> ", TxId, " likes ", Hash)
+	// 			}
+	// 		}
+	// 	}
+	// }
+	return ScannerBlockHeight
+}
+
 func getBitDbData(query string) ([]byte, error) {
 	b64_query := base64.StdEncoding.EncodeToString([]byte(query))
 	url := "https://bitdb.network/q/" + b64_query
@@ -499,6 +556,10 @@ func getBlockheight() uint64 {
 
 func main() {
 	var err error
+
+	var test []string
+	getMemoComments(554000, test)
+	time.Sleep(10 * time.Second)
 
 	currentBlockheight := getBlockheight()
 	fmt.Println("Currentblockheight: ", currentBlockheight)
