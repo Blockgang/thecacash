@@ -267,12 +267,12 @@ func getUnconfirmed_E901(unconfirmedInDb []string) {
 
 func getConfirmed_E901(ScannerBlockHeight uint32, unconfirmedInDb []string) uint32 {
 	query := fmt.Sprintf(c_query, ScannerBlockHeight)
-	body, err := getBitDbData(query)
+	response, err := getBitDbData(query)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	err = json.Unmarshal(body, &q)
+	err = json.Unmarshal(response, &q)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -331,11 +331,12 @@ func getConfirmed_E901(ScannerBlockHeight uint32, unconfirmedInDb []string) uint
 }
 
 func getUnconfirmedMemoLikes(unconfirmedInDb []string) {
-	body, err := getBitDbData(uc_memoLikesQuery)
+	response, err := getBitDbData(uc_memoLikesQuery)
 	if err != nil {
 		log.Fatalln(err)
 	}
-	json.Unmarshal(body, &q)
+
+	json.Unmarshal(response, &q)
 
 	for i := range q.Unconfirmed {
 		Sender := q.Unconfirmed[i].In[0].E.A
@@ -372,12 +373,12 @@ func getUnconfirmedMemoLikes(unconfirmedInDb []string) {
 
 func getMemoLikes(ScannerBlockHeight uint32, unconfirmedInDb []string) uint32 {
 	query := fmt.Sprintf(memoLikesQuery, ScannerBlockHeight)
-	body, err := getBitDbData(query)
+	response, err := getBitDbData(query)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	json.Unmarshal(body, &q)
+	json.Unmarshal(response, &q)
 
 	var BlockHeight uint32
 
@@ -427,14 +428,6 @@ func getMemoLikes(ScannerBlockHeight uint32, unconfirmedInDb []string) uint32 {
 	return ScannerBlockHeight
 }
 
-func queryBitdb(query string) ([]byte, error) {
-	response, err := getBitDbData(query)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	return response, err
-}
-
 func getBitDbData(query string) ([]byte, error) {
 	b64_query := base64.StdEncoding.EncodeToString([]byte(query))
 	url := "https://bitdb.network/q/" + b64_query
@@ -473,7 +466,7 @@ func reverseHexStringBytes(hexString string) (string, error) {
 }
 
 func getBlockheight() uint64 {
-	response, err := queryBitdb(bitdbBlockheight_query)
+	response, err := getBitDbData(bitdbBlockheight_query)
 	if err != nil {
 		log.Fatal(err)
 	}
