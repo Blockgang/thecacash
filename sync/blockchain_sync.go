@@ -15,6 +15,21 @@ import (
 	"github.com/tidwall/gjson"
 )
 
+type Bitquery struct {
+	Unconfirmed []Row `json:"u"`
+	Confirmed   []Row `json:"c"`
+}
+
+type Row struct {
+	TxId           string `json:"txid"`
+	Prefix         string `json:"prefix"`
+	TxHash         string `json:"txhash"`
+	Sender         string `json:"sender"`
+	Message        string `json:"message"`
+	BlockHeight    uint32 `json:"blockheight"`
+	BlockTimestamp uint32 `json:"blocktimestamp"`
+}
+
 type Query struct {
 	Unconfirmed []Transaction `json:"u"`
 	Confirmed   []Transaction `json:"c"`
@@ -177,19 +192,24 @@ const memoCommentsQuery = `{
   "q": {
     "find": {
 			"out.h1": "6d03",
-			"blk.i": {
-				"$gte" : %d
-			}
+			"$or": [{
+  			"blk.i": {
+  				"$gte" : %d
+  			}
+			}, {
+			  "blk": null
+			}]
 		},
     "limit": 10
   },
   "r": {
-    "f": "[.[] | .tx.h as $tx | .in as $in | .blk as $blk | .out[] | select(.b0.op? and .b0.op == 106) | {prefix: .h1, txhash: .h2, message: .s3, txid: $tx, sender: $in[0].e.a, blockheight: $blk.i, blocktimestamp: $blk.t}]"
+    "f": "[.[] | .tx.h as $tx | .in as $in | .blk as $blk | .out[] | select(.b0.op? and .b0.op == 106) | {txhash: .h2, message: .s3, txid: $tx, sender: $in[0].e.a, blockheight: (if $blk then $blk.i else null end), blocktimestamp: (if $blk then $blk.t else null end)}]"
   }
 }`
 
 var db *sql.DB
 var q Query
+var bq Bitquery
 var ScannerBlockHeight uint32
 var LastScannerBlockHeight uint32
 
@@ -452,29 +472,23 @@ func getMemoComments(ScannerBlockHeight uint32, unconfirmedInDb []string) uint32
 		log.Fatalln(err)
 	}
 
-	json.Unmarshal(response, &q)
+	json.Unmarshal(response, &bq)
 	fmt.Println(string(response))
 
-	// var BlockHeight uint32
-	//
-	// for i := range q.Confirmed {
-	// 	Sender := q.Confirmed[i].In[0].E.A
-	// 	TxId := q.Confirmed[i].Tx.H
-	// 	txOuts := q.Confirmed[i].Out
-	// 	BlockTimestamp := q.Confirmed[i].Blk.T
-	// 	BlockHeight = q.Confirmed[i].Blk.I
-	// 	if BlockHeight > ScannerBlockHeight {
-	// 		ScannerBlockHeight = BlockHeight + 1
-	// 	}
-	// 	var Prefix string
-	// 	var Hash string
-	// 	for a := range txOuts {
-	// 		if txOuts[a].B1 == "6d04" {
-	// 			Prefix = txOuts[a].B1
-	// 			Hash, _ = reverseHexStringBytes(txOuts[a].B2)
-	// 		}
-	// 	}
-	//
+	var BlockHeight uint32
+
+	for i := range bq.Confirmed {
+		Sender := bq.Confirmed[i].Sender
+		TxId := bq.Confirmed[i].TxId
+		TxHash, _ := reverseHexStringBytes(bq.Confirmed[i].TxHash)
+		Message := bq.Confirmed[i].Message
+		BlockTimestamp := bq.Confirmed[i].BlockTimestamp
+		BlockHeight = bq.Confirmed[i].BlockHeight
+		if BlockHeight > ScannerBlockHeight {
+			ScannerBlockHeight = BlockHeight + 1
+		}
+		fmt.Println(TxId, TxHash, BlockTimestamp, Sender, Message)
+	}
 	// 	if len(Prefix) != 0 && len(Hash) > 20 {
 	// 		exists := false
 	// 		for i := range unconfirmedInDb {
