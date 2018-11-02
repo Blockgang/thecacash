@@ -2,7 +2,7 @@ CREATE DATABASE `theca`;
 USE theca;
 
 -- Activate EVENT SCHEDULER
-SET GLOBAL event_scheduler = on;
+-- SET GLOBAL event_scheduler = ON;
 
 -- Disable Save Update Mode
 SET SQL_SAFE_UPDATES = 0;

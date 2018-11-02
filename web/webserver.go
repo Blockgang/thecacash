@@ -20,7 +20,6 @@ import (
 
 type Tx struct {
 	Txid           string
-	Prefix         string
 	Link           string
 	DataType       string
 	Title          string
@@ -79,7 +78,6 @@ type SignupResponse struct {
 
 func postSignup(w http.ResponseWriter, r *http.Request) {
 	var signupPost SignupPost
-	//var signup bool
 
 	decoder := json.NewDecoder(r.Body)
 	decoder.Decode(&signupPost)
@@ -119,7 +117,7 @@ func signup(userName string, passwordHash string, encryptedPk string) (SignupRes
 }
 
 func insertLoginIntoMysql(userName string, passwordHash string, encryptedPk string) error {
-	sql_query := "INSERT INTO users VALUES(?,?,?)"
+	sql_query := "INSERT INTO users (username,password,encrypted_pk) VALUES(?,?,?)"
 	insert, err := db.Prepare(sql_query)
 	defer insert.Close()
 	_, err = insert.Query(userName, passwordHash, encryptedPk)
@@ -224,7 +222,7 @@ func getTransactionDataFromBackend(txid string) (Tx, error) {
 	var err error
 	var cache *memcache.Item
 
-	sql_query := fmt.Sprintf("SELECT txid,prefix,hash,type,title,blocktimestamp,blockheight,sender FROM prefix_0xe901 WHERE txid='%s'", txid)
+	sql_query := fmt.Sprintf("SELECT txid,hash,type,title,blocktimestamp,blockheight,sender FROM prefix_0xe901 WHERE txid='%s'", txid)
 	fmt.Println(sql_query)
 	cache_key := hasher(sql_query)
 	cache, errCache = get_cache(cache_key)
@@ -237,7 +235,6 @@ func getTransactionDataFromBackend(txid string) (Tx, error) {
 
 		for query.Next() {
 			var txid string
-			var prefix string
 			var link string
 			var dataType string
 			var title string
@@ -247,7 +244,6 @@ func getTransactionDataFromBackend(txid string) (Tx, error) {
 
 			err = query.Scan(
 				&txid,
-				&prefix,
 				&link,
 				&dataType,
 				&title,
@@ -257,7 +253,6 @@ func getTransactionDataFromBackend(txid string) (Tx, error) {
 
 			tx = Tx{
 				Txid:           txid,
-				Prefix:         prefix,
 				Link:           link,
 				DataType:       dataType,
 				Title:          title,
@@ -342,7 +337,7 @@ func selectFromMysql2() ([]Tx, error) {
 	var err error
 	var cache *memcache.Item
 
-	sql_query := "SELECT txid,prefix,hash,type,title,blocktimestamp,blockheight,sender FROM prefix_0xe901"
+	sql_query := "SELECT txid,hash,type,title,blocktimestamp,blockheight,sender FROM prefix_0xe901"
 	cache_key := hasher(sql_query)
 	cache, errCache = get_cache(cache_key)
 	if errCache != nil {
