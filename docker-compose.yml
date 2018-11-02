@@ -8,6 +8,7 @@ services:
     networks:
       thecanet:
         ipv4_address: 192.168.12.2
+    command: mysqld --event_scheduler="ON"
 
   memcache:
     build: ./memcache
@@ -16,12 +17,12 @@ services:
         ipv4_address: 192.168.12.3
 
   sync:
-    build: ./sync 
+    build: ./sync
     depends_on:
       - "db"
         #stdin_open: true
         #tty: true
-#    network_mode: bridge 
+#    network_mode: bridge
     networks:
       thecanet:
         ipv4_address: 192.168.12.4
@@ -40,4 +41,3 @@ services:
 networks:
   thecanet:
     external: true
-
