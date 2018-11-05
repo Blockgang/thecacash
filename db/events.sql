@@ -16,3 +16,22 @@ CREATE EVENT memoLikeCounter
 		    INSERT INTO theca.event_scheduler(message,created_at,duration) VALUES('memoLikeCounter',@start,@duration);
 		END |
 DELIMITER ;
+
+
+-- memoCommentCounter Events
+DELIMITER |
+CREATE EVENT memoCommentCounter
+	ON SCHEDULE EVERY 10 second
+	DO
+		BEGIN
+			SET @start = NOW();
+		  -- count Memo Comments
+        UPDATE theca.prefix_0xe901 AS e901 SET e901.comments = e901.comments + COALESCE((SELECT COUNT(*) AS cnt FROM theca.prefix_0x6d03 as pref WHERE pref.txhash = e901.txid AND new = 1 GROUP BY pref.txhash),0);
+			  UPDATE theca.prefix_0x6d03 AS 6d03 SET 6d03.new = 0, 6d03.theca = IF(EXISTS(SELECT 1 FROM theca.prefix_0xe901 as pref WHERE pref.txid = 6d03.txhash), 1, 0);
+		  -- cleanup Memo Comments
+		    DELETE FROM theca.prefix_0x6d03 WHERE new = 0 AND theca = 0; -- AND timestamp < @start;
+		    SET @end = NOW();
+		    SET @duration = (SELECT timestampdiff(SECOND,@start,@end));
+		    INSERT INTO theca.event_scheduler(message,created_at,duration) VALUES('memoCommentCounter',@start,@duration);
+		END |
+DELIMITER ;

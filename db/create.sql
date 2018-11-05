@@ -30,7 +30,8 @@ CREATE TABLE `prefix_0xe901` (
   `blockheight` int(11) DEFAULT 0,
   `sender` varchar(60) NOT NULL,
   `timestamp` timestamp NOT NULL DEFAULT current_timestamp(),
-  `likes` int(11) DEFAULT 0,
+  `likes` int(11) NOT NULL DEFAULT 0,
+  `comments` int(11) NOT NULL DEFAULT 0,
   PRIMARY KEY (`txid`)
 );
 

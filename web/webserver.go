@@ -54,8 +54,6 @@ func main() {
 	//Response
 	router.HandleFunc("/api/tx/positions", getPositions).
 		Methods("GET")
-	router.HandleFunc("/api/tx/positionsscore", getPositionsScore).
-		Methods("GET")
 	router.HandleFunc("/api/login", postLogin).
 		Methods("POST")
 	router.HandleFunc("/api/signup", postSignup).
@@ -212,16 +210,6 @@ func getTransactionData(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(txData)
 }
 
-func getPositions(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("accessed getPositions")
-	txs, err := getPositionsFromBackend()
-	if err != nil {
-		log.Fatal(err)
-	}
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(txs)
-}
-
 func calculateScore(likes uint32, timestamp uint32) float64 {
 	score := float64(0)
 	gravity := float64(1.8)
@@ -233,8 +221,8 @@ func calculateScore(likes uint32, timestamp uint32) float64 {
 	return score
 }
 
-func getPositionsScore(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("accessed getPositionsScore")
+func getPositions(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("accessed getPositions")
 	txs, err := getPositionsFromBackend()
 	fmt.Println(txs)
 	for tx := range txs {
@@ -309,7 +297,7 @@ func getPositionsFromBackend() ([]Tx, error) {
 	var err error
 	var cache *memcache.Item
 
-	sql_query := "SELECT txid,hash,type,title,blocktimestamp,blockheight,sender,likes FROM prefix_0xe901"
+	sql_query := "SELECT txid,hash,type,title,blocktimestamp,blockheight,sender,likes,comments FROM prefix_0xe901"
 	cache_key := hasher(sql_query)
 	cache, errCache = get_cache(cache_key)
 	if errCache != nil {
@@ -328,6 +316,7 @@ func getPositionsFromBackend() ([]Tx, error) {
 			var blockHeight uint32
 			var sender string
 			var likes uint32
+			var comments uint32
 
 			err = query.Scan(
 				&txid,
@@ -337,7 +326,8 @@ func getPositionsFromBackend() ([]Tx, error) {
 				&blockTimestamp,
 				&blockHeight,
 				&sender,
-				&likes)
+				&likes,
+				&comments)
 
 			txs = append(txs,
 				Tx{
@@ -348,7 +338,8 @@ func getPositionsFromBackend() ([]Tx, error) {
 					BlockTimestamp: blockTimestamp,
 					BlockHeight:    blockHeight,
 					Sender:         sender,
-					Likes:          likes})
+					Likes:          likes,
+					Comments:       comments})
 		}
 		cacheBytes := new(bytes.Buffer)
 		json.NewEncoder(cacheBytes).Encode(txs)
