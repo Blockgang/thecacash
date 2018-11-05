@@ -8,7 +8,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"math"
 	"net/http"
+	"time"
 
 	"github.com/bradfitz/gomemcache/memcache"
 	"github.com/gorilla/mux"
@@ -27,6 +29,7 @@ type Tx struct {
 	BlockHeight    uint32
 	Sender         string
 	Likes          uint32
+	Score          float64
 }
 
 var db *sql.DB
@@ -49,6 +52,8 @@ func main() {
 
 	//Response
 	router.HandleFunc("/api/tx/positions", getPositions).
+		Methods("GET")
+	router.HandleFunc("/api/tx/positionsscore", getPositionsScore).
 		Methods("GET")
 	router.HandleFunc("/api/login", postLogin).
 		Methods("POST")
@@ -209,6 +214,31 @@ func getTransactionData(w http.ResponseWriter, r *http.Request) {
 func getPositions(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("accessed getPositions")
 	txs, err := getPositionsFromBackend()
+	if err != nil {
+		log.Fatal(err)
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(txs)
+}
+
+func calculateScore(likes uint32, timestamp uint32) float64 {
+	score := float64(0)
+	gravity := float64(1.8)
+	now := time.Now().Unix()
+	hours := float64(now-int64(timestamp)) / 3600
+	if likes > 0 {
+		score = float64(likes-1) / math.Pow((hours+2), gravity)
+	}
+	return score
+}
+
+func getPositionsScore(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("accessed getPositionsScore")
+	txs, err := getPositionsFromBackend()
+	fmt.Println(txs)
+	for tx := range txs {
+		txs[tx].Score = calculateScore(txs[tx].Likes, txs[tx].BlockTimestamp)
+	}
 	if err != nil {
 		log.Fatal(err)
 	}
