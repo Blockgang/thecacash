@@ -32,15 +32,11 @@ Get Transaction Infos
 http://192.168.12.5:8000/api/tx/{txid}
 http://192.168.12.5:8000/api/tx/569be470b326e50afbbc739531ea428b5c6977fd900091e3a8faeaf90b85140b
 ```
-Get All Transactions
+Get All Transactions (inkl. like,comment counter + score)
 ```
 http://192.168.12.5:8000/api/tx/positions
 ```
 
-Get All Transactions with Ranking SCORE
-```
-http://192.168.12.5:8000/api/tx/positionsscore
-```
 ### POST ###
 #### SIGNUP ####
 POST-Request:
