@@ -29,6 +29,7 @@ type Tx struct {
 	BlockHeight    uint32
 	Sender         string
 	Likes          uint32
+	Comments       uint32
 	Score          float64
 }
 
