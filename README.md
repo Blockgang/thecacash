@@ -36,6 +36,11 @@ Get All Transactions
 ```
 http://127.0.0.1:8000/api/tx/positions
 ```
+
+Get All Transactions with Ranking SCORE
+```
+http://127.0.0.1:8000/api/tx/positionsscore
+```
 ### POST ###
 #### SIGNUP ####
 POST-Request:
