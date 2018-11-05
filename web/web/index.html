@@ -21,6 +21,7 @@
 
   <!-- Functions -->
   <script src="main.js"></script>
+  <!-- <script src="bundle.js"></script> -->
 
   <!-- Stylesheet -->
   <link rel="stylesheet" type="text/css" href="style.css">
@@ -83,7 +84,7 @@
         <div class="input-group home-search">
           <input id="search" type="text" class="form-control" placeholder="Beethoven" required>
           <div class="input-group-btn">
-            <a class="btn btn-danger" onclick="bitdb_get_magnetlinks(100);"><span class="glyphicon glyphicon-search"></span></a>
+            <a class="btn btn-danger" onclick="getFromAPI();"><span class="glyphicon glyphicon-search"></span></a>
           </div>
         </div>
       </div>
@@ -229,7 +230,7 @@ $(document).ready(function(){
 })
 </script>
 <script>
-  bitdb_get_magnetlinks(100);
+  getFromAPI();
 </script>
 
 </body>

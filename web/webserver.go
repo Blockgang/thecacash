@@ -188,7 +188,7 @@ func check_login(userName string, passwordHash string) (string, error) {
 		}
 		cacheBytes := new(bytes.Buffer)
 		json.NewEncoder(cacheBytes).Encode(encryptedKey)
-		err = set_cache2(cache_key, cacheBytes.Bytes(), 5)
+		err = set_cache(cache_key, cacheBytes.Bytes(), 5)
 		if err != nil {
 			fmt.Println("Set Cache Error:", err)
 		}
@@ -281,7 +281,7 @@ func getTransactionDataFromBackend(txid string) (Tx, error) {
 		}
 		cacheBytes := new(bytes.Buffer)
 		json.NewEncoder(cacheBytes).Encode(tx)
-		err = set_cache2(cache_key, cacheBytes.Bytes(), 5)
+		err = set_cache(cache_key, cacheBytes.Bytes(), 5)
 		if err != nil {
 			fmt.Println("Set Cache Error:", err)
 		}
@@ -343,7 +343,7 @@ func getPositionsFromBackend() ([]Tx, error) {
 		}
 		cacheBytes := new(bytes.Buffer)
 		json.NewEncoder(cacheBytes).Encode(txs)
-		err = set_cache2(cache_key, cacheBytes.Bytes(), 5)
+		err = set_cache(cache_key, cacheBytes.Bytes(), 5)
 		if err != nil {
 			fmt.Println("Set Cache Error:", err)
 		}
@@ -389,7 +389,7 @@ func selectFromMysql2() ([]Tx, error) {
 
 		cacheBytes := new(bytes.Buffer)
 		json.NewEncoder(cacheBytes).Encode(outArr)
-		err = set_cache2(cache_key, cacheBytes.Bytes(), 5)
+		err = set_cache(cache_key, cacheBytes.Bytes(), 5)
 		if err != nil {
 			fmt.Println("Set Cache Error:", err)
 		}
@@ -411,13 +411,7 @@ func get_cache(key string) (*memcache.Item, error) {
 	return val, err
 }
 
-func set_cache(key string, value string, expiretime int32) error {
-	fmt.Println("set key:", key)
-	err := mc.Set(&memcache.Item{Key: key, Value: []byte(value), Expiration: expiretime})
-	return err
-}
-
-func set_cache2(key string, value []byte, expiretime int32) error {
+func set_cache(key string, value []byte, expiretime int32) error {
 	fmt.Println("set key:", key)
 	err := mc.Set(&memcache.Item{Key: key, Value: value, Expiration: expiretime})
 	return err
