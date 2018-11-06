@@ -14,6 +14,7 @@ import (
 
 	"github.com/bradfitz/gomemcache/memcache"
 	"github.com/gorilla/mux"
+	"github.com/pmylund/sortutil"
 
 	"github.com/junhsieh/goexamples/fieldbinding/fieldbinding"
 
@@ -228,6 +229,7 @@ func getPositions(w http.ResponseWriter, r *http.Request) {
 	for tx := range txs {
 		txs[tx].Score = calculateScore(txs[tx].Likes, txs[tx].BlockTimestamp)
 	}
+	sortutil.DescByField(txs, "Score")
 	if err != nil {
 		log.Fatal(err)
 	}

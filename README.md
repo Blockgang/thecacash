@@ -73,6 +73,8 @@ Failed:
 ```
 go get github.com/bradfitz/gomemcache/memcache
 go get github.com/gorilla/mux
+go get github.com/pmylund/sortutil
+go get github.com/junhsieh/goexamples/fieldbinding/fieldbinding
 ```
 
 ## Links?

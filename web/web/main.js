@@ -222,7 +222,6 @@ function bitdb_get_magnetlinks(limit) {
 };
 
 function list_tx_results(tx,confirmed){
-  console.log(tx)
   var tr = document.createElement('tr');
   var td_txid = document.createElement('td');
   var td_like = document.createElement('td');
