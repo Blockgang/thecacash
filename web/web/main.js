@@ -1,39 +1,3 @@
-function send(){ //217 chars
-  var pkey = document.getElementById('pkey').value
-  var title = document.getElementById('title').value
-  var type = document.getElementById('data_type').value
-  var hash = document.getElementById('hash').value
-  var prefix = "0xe901" //theca init
-  // var raw_data = hash + "|" + type + "|" + title
-  var payload = [hash,type,title]
-  console.log(payload);
-  var tx = {
-      data: [prefix, hash,type,title],
-      cash: { key: pkey }
-    }
-  datacash.send(tx, function(err, res) {
-    console.log(res)
-  })
-}
-
-
-function reply(txid,comment){ //comment 184chars
-  var pkey = document.getElementById('pkey').value
-  var prefix = "0x6d03" // memo reply
-  //todo: validate txid pattern
-  var tx = {
-      data: [prefix, txid],
-      cash: { key: pkey }
-    }
-  datacash.send(tx, function(err, res) {
-    if(err != null){
-      return false
-    }else{
-      return true
-    }
-  })
-}
-
 // Convert a hex string to a byte array
 function hexToBytes(hex) {
     for (var bytes = [], c = 0; c < hex.length; c += 2)
@@ -54,13 +18,52 @@ function reverseBytes(txid){
   return bytesToHex(hexToBytes(txid).reverse())
 }
 
+function send(){ //217 chars
+  var pkey = document.getElementById('pkey').value
+  var title = document.getElementById('title').value
+  var type = document.getElementById('data_type').value
+  var hash = document.getElementById('hash').value
+  var prefix = "0xe901" //theca init
+  var payload = [hash,type,title]
+  console.log(payload);
+  var tx = {
+      data: [prefix, hash,type,title],
+      cash: { key: pkey }
+    }
+  datacash.send(tx, function(err, res) {
+    console.log(res)
+  })
+}
+
+
+function reply(txid,comment){ //comment 184chars
+  var pkey = document.getElementById('pkey').value
+  var commentCounter = document.getElementById("comment_counter_"+txid)
+  var commentImg = document.getElementById("comment_"+txid)
+  var prefix = "0x6d03" // memo reply
+  var reverseByteTxId = "0x"+reverseBytes(txid)
+  var tx = {
+      data: [prefix, reverseByteTxId,comment],
+      cash: { key: pkey }
+    }
+  datacash.send(tx, function(err, res) {
+    if(err != null){
+      return false
+    }else{
+      commentCounter.innerHTML = parseInt(commentCounter.innerHTML) + 1
+      commentImg.src = "icons/comment_1.png"
+      console.log(res)
+      return true
+    }
+  })
+}
+
 function like(txid,counter){
   var pkey = document.getElementById('pkey').value
   var likeCounter = document.getElementById("like_counter_"+txid)
   var likeImg = document.getElementById("like_"+txid)
   var prefix = "0x6d04" //memo like
   var reverseByteTxId = "0x"+reverseBytes(txid)
-  //todo: validate txid pattern
   var tx = {
       data: [prefix, reverseByteTxId],
       cash: { key: pkey }
@@ -242,11 +245,20 @@ function list_tx_results(tx,confirmed){
   }else{
     likeImage = "heart_0.png"
   }
+
+  var testcomment = "test comment, bla bla bla!\n dies ist ein test :)"
+  if (tx.Comments > 0){
+    commentImage = "comment_1.png"
+    td_comments.innerHTML = "<a title='comment' onclick='reply(`"+ tx.Txid +"`,`"+ testcomment +"`)'><img class='comment' id='comment_"+ tx.Txid +"' height='20' src='icons/"+ commentImage +"'><span class='commentcounter' id='comment_counter_"+ tx.Txid +"'>"+ tx.Comments +"</span></a>"
+  }else{
+    commentImage = "comment_0.png"
+    td_comments.innerHTML = "<a title='comment' onclick='reply(`"+ tx.Txid +"`,`"+ testcomment +"`)'><img class='comment' id='comment_"+ tx.Txid +"' height='20' src='icons/"+ commentImage +"'><span class='commentcounter' id='comment_counter_"+ tx.Txid +"'>"+ tx.Comments +"</span></a>"
+  }
+
   td_like.innerHTML = "<a title='like' onclick='like(`"+ tx.Txid +"`)'><img class='like' id='like_"+ tx.Txid +"' height='20' src='icons/"+ likeImage +"'><span class='likecounter' id='like_counter_"+ tx.Txid +"'>"+ tx.Likes +"</span></a>"
   td_sender.innerHTML = tx.txid
   td_blockheight.innerHTML = (confirmed) ? (tx.BlockHeight) : ("unconfirmed")
   td_score.innerHTML = tx.Score
-  td_comments.innerHTML = tx.Comments
 
   var link = check_link(tx.Link)
   var type = check_type(tx.DataType)
