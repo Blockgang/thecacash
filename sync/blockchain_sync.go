@@ -200,7 +200,7 @@ const memoCommentsQuery = `{
 			  "blk": null
 			}]
 		},
-    "limit": 10
+    "limit": 100000
   },
   "r": {
     "f": "[.[] | .tx.h as $tx | .in as $in | .blk as $blk | .out[] | select(.b0.op? and .b0.op == 106) | {txhash: .h2, message: .s3, txid: $tx, sender: $in[0].e.a, blockheight: (if $blk then $blk.i else null end), blocktimestamp: (if $blk then $blk.t else null end)}]"
@@ -482,7 +482,6 @@ func getMemoComments(ScannerBlockHeight uint32, unconfirmedInDb []string) uint32
 
 	json.Unmarshal(response, &bq)
 
-	fmt.Println(bq.Unconfirmed)
 	for i := range bq.Confirmed {
 		exists := false
 		row := bq.Confirmed[i]

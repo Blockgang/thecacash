@@ -106,26 +106,9 @@ OP_RETURN (PD1)0xe902 (PD2)magnet:?xt=urn:btih:678d1a0744863813bd11e12c473e0a2ab
 ...
 ```
 
-Prefix: 0xe903 (Like + Tip)
-```
-# OP_RETURN 0xe903 <magnet-hash>
+Prefix: 0x6d04 (MEMO Like + Tip)
+Prefix: 0x6d03 (MEMO Reply)
 
-OP_RETURN 0xe902 08ada5a7a6183aae1e09d831df6748d566095a10
-```
-
-Prefix: 0xe904 (Dislike)
-```
-# OP_RETURN 0xe904 <magnet-hash>
-
-OP_RETURN 0xe904 08ada5a7a6183aae1e09d831df6748d566095a10
-```
-
-Prefix: 0xe905 (Comment)
-```
-# OP_RETURN 0xe905 <magnet-hash>|<comment>
-
-OP_RETURN 0xe905 08ada5a7a6183aae1e09d831df6748d566095a10|Bestes Video überhaupt =)...
-```
 
 MEMO-Example:
 ```

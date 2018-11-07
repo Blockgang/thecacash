@@ -224,6 +224,56 @@ function bitdb_get_magnetlinks(limit) {
   })
 };
 
+
+function openComments(txid){
+  console.log(txid);
+  var request = new XMLHttpRequest();
+
+  request.open('GET', 'http://192.168.12.5:8000/api/comments/'+txid, true);
+  request.onload = function () {
+    var modal = document.getElementById("commentsModal");
+    var span = document.getElementsByClassName("close")[0];
+    var content = document.getElementsByClassName("modal-content")[0];
+    var contentReset = "<span class='close'>&times;</span>";
+    var title = document.createElement('h1');
+
+    modal.style.display = "block";
+    span.onclick = function() {
+        modal.style.display = "none";
+        content.innerHTML = contentReset;
+    }
+
+    window.onclick = function(event) {
+        if (event.target == modal) {
+            modal.style.display = "none";
+            content.innerHTML = contentReset;
+        }
+    }
+
+    var data = JSON.parse(this.response);
+    console.log(data)
+    if (request.status >= 200 && request.status < 400) {
+      var ul = document.createElement('ul');
+      if(data){
+        data.forEach(tx => {
+          var li = document.createElement('li');
+          li.innerHTML =  "<a class='result-tx-link' data-toggle='tooltip' title='Tx-Data: " + JSON.stringify(tx) + "' target='_blank' href='https://blockchair.com/bitcoin-cash/transaction/"+ tx.Txid +"'><span class='glyphicon glyphicon-th'></span></a> "+tx.Message;
+          ul.appendChild(li)
+        });
+        title.innerHTML = "Comments"
+      } else {
+        title.innerHTML = "No Comments"
+      }
+
+      content.appendChild(title)
+      content.appendChild(ul)
+    } else {
+      console.log('error');
+    }
+  }
+  request.send();
+}
+
 function list_tx_results(tx,confirmed){
   var tr = document.createElement('tr');
   var td_txid = document.createElement('td');
@@ -249,10 +299,12 @@ function list_tx_results(tx,confirmed){
   var testcomment = "test comment, bla bla bla!\n dies ist ein test :)"
   if (tx.Comments > 0){
     commentImage = "comment_1.png"
-    td_comments.innerHTML = "<a title='comment' onclick='reply(`"+ tx.Txid +"`,`"+ testcomment +"`)'><img class='comment' id='comment_"+ tx.Txid +"' height='20' src='icons/"+ commentImage +"'><span class='commentcounter' id='comment_counter_"+ tx.Txid +"'>"+ tx.Comments +"</span></a>"
+    // td_comments.innerHTML = "<a title='comment' onclick='reply(`"+ tx.Txid +"`,`"+ testcomment +"`)'><img class='comment' id='comment_"+ tx.Txid +"' height='20' src='icons/"+ commentImage +"'><span class='commentcounter' id='comment_counter_"+ tx.Txid +"'>"+ tx.Comments +"</span></a>"
+    td_comments.innerHTML = "<button id='openComments_"+tx.Txid +"' onclick='openComments(`"+ tx.Txid +"`)'><img class='comment' id='comment_"+ tx.Txid +"' height='20' src='icons/"+ commentImage +"'><span class='commentcounter' id='comment_counter_"+ tx.Txid +"'>"+ tx.Comments +"</span></button>"
   }else{
     commentImage = "comment_0.png"
-    td_comments.innerHTML = "<a title='comment' onclick='reply(`"+ tx.Txid +"`,`"+ testcomment +"`)'><img class='comment' id='comment_"+ tx.Txid +"' height='20' src='icons/"+ commentImage +"'><span class='commentcounter' id='comment_counter_"+ tx.Txid +"'>"+ tx.Comments +"</span></a>"
+    // td_comments.innerHTML = "<a title='comment' onclick='reply(`"+ tx.Txid +"`,`"+ testcomment +"`)'><img class='comment' id='comment_"+ tx.Txid +"' height='20' src='icons/"+ commentImage +"'><span class='commentcounter' id='comment_counter_"+ tx.Txid +"'>"+ tx.Comments +"</span></a>"
+    td_comments.innerHTML = "<button id='openComments_"+tx.Txid +"' onclick='openComments(`"+ tx.Txid +"`)'><img class='comment' id='comment_"+ tx.Txid +"' height='20' src='icons/"+ commentImage +"'><span class='commentcounter' id='comment_counter_"+ tx.Txid +"'>"+ tx.Comments +"</span></button>"
   }
 
   td_like.innerHTML = "<a title='like' onclick='like(`"+ tx.Txid +"`)'><img class='like' id='like_"+ tx.Txid +"' height='20' src='icons/"+ likeImage +"'><span class='likecounter' id='like_counter_"+ tx.Txid +"'>"+ tx.Likes +"</span></a>"
