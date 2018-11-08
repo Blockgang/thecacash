@@ -26,11 +26,12 @@ type Theca struct {
 	Link           string
 	DataType       string
 	Title          string
-	BlockTimestamp uint32
+	BlockTimestamp int64
 	BlockHeight    uint32
 	Sender         string
 	Likes          uint32
 	Comments       uint32
+	Timestamp      int64
 	Score          float64
 }
 
@@ -38,10 +39,10 @@ type Comment struct {
 	Txid           string
 	TxHash         string
 	Message        string
-	BlockTimestamp uint32
+	BlockTimestamp int64
 	BlockHeight    uint32
 	Sender         string
-	Timestamp      string
+	Timestamp      int64
 	Score          float64
 }
 
@@ -224,7 +225,7 @@ func getTransactionData(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(txData)
 }
 
-func calculateScore(likes uint32, timestamp uint32) float64 {
+func calculateScore(likes uint32, timestamp int64) float64 {
 	score := float64(0)
 	gravity := float64(1.8)
 	now := time.Now().Unix()
@@ -252,6 +253,9 @@ func getPositions(w http.ResponseWriter, r *http.Request) {
 	txs, err := getPositionsFromBackend()
 	fmt.Println(txs)
 	for tx := range txs {
+		if txs[tx].BlockTimestamp == 0 {
+			txs[tx].BlockTimestamp = txs[tx].Timestamp
+		}
 		txs[tx].Score = calculateScore(txs[tx].Likes, txs[tx].BlockTimestamp)
 	}
 	sortutil.DescByField(txs, "Score")
@@ -268,7 +272,7 @@ func getTransactionDataFromBackend(txid string) (Theca, error) {
 	var err error
 	var cache *memcache.Item
 
-	sql_query := fmt.Sprintf("SELECT txid,hash,type,title,blocktimestamp,blockheight,sender FROM prefix_0xe901 WHERE txid='%s'", txid)
+	sql_query := fmt.Sprintf("SELECT txid,hash,type,title,blocktimestamp,blockheight,sender,UNIX_TIMESTAMP(timestamp) FROM prefix_0xe901 WHERE txid='%s'", txid)
 	fmt.Println(sql_query)
 	cache_key := hasher(sql_query)
 	cache, errCache = get_cache(cache_key)
@@ -284,9 +288,10 @@ func getTransactionDataFromBackend(txid string) (Theca, error) {
 			var link string
 			var dataType string
 			var title string
-			var blockTimestamp uint32
+			var blockTimestamp int64
 			var blockHeight uint32
 			var sender string
+			var timestamp int64
 
 			err = query.Scan(
 				&txid,
@@ -295,7 +300,8 @@ func getTransactionDataFromBackend(txid string) (Theca, error) {
 				&title,
 				&blockTimestamp,
 				&blockHeight,
-				&sender)
+				&sender,
+				&timestamp)
 
 			tx = Theca{
 				Txid:           txid,
@@ -304,7 +310,8 @@ func getTransactionDataFromBackend(txid string) (Theca, error) {
 				Title:          title,
 				BlockTimestamp: blockTimestamp,
 				BlockHeight:    blockHeight,
-				Sender:         sender}
+				Sender:         sender,
+				Timestamp:      timestamp}
 		}
 		cacheBytes := new(bytes.Buffer)
 		json.NewEncoder(cacheBytes).Encode(tx)
@@ -323,7 +330,7 @@ func getCommentsFromBackend(txid string) ([]Comment, error) {
 	var errCache error
 	var err error
 	var cache *memcache.Item
-	sql_query := fmt.Sprintf("SELECT txid,txhash,message,blocktimestamp,blockheight,sender,timestamp FROM prefix_0x6d03 WHERE txhash = '%s'", txid)
+	sql_query := fmt.Sprintf("SELECT txid,txhash,message,blocktimestamp,blockheight,sender,UNIX_TIMESTAMP(timestamp) FROM prefix_0x6d03 WHERE txhash = '%s'", txid)
 	fmt.Println(sql_query)
 	cache_key := hasher(sql_query)
 	cache, errCache = get_cache(cache_key)
@@ -338,10 +345,10 @@ func getCommentsFromBackend(txid string) ([]Comment, error) {
 			var txid string
 			var txhash string
 			var message string
-			var blockTimestamp uint32
+			var blockTimestamp int64
 			var blockHeight uint32
 			var sender string
-			var timestamp string
+			var timestamp int64
 
 			err = query.Scan(
 				&txid,
@@ -395,7 +402,7 @@ func getPositionsFromBackend() ([]Theca, error) {
 			var link string
 			var dataType string
 			var title string
-			var blockTimestamp uint32
+			var blockTimestamp int64
 			var blockHeight uint32
 			var sender string
 			var likes uint32
