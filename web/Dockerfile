@@ -1,14 +1,14 @@
 FROM golang:latest as builder
 
-COPY . $GOPATH/src/mypackage/myapp/
-WORKDIR $GOPATH/src/mypackage/myapp/
+RUN mkdir /build
+ADD . /build/
+WORKDIR /build
 
-RUN go get -d -v
-
-RUN go build -o /go/src/webserver
+RUN go get -d
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -ldflags '-extldflags "-static"' -o webserver .
 
 FROM scratch
-COPY --from=builder /go/src/webserver /go/src/webserver
-
+COPY --from=builder /build/webserver /app/
+WORKDIR /app
 EXPOSE 8000
-ENTRYPOINT ["/go/src/webserver"]
+CMD ["./webserver"]
