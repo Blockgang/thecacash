@@ -1,4 +1,5 @@
 FROM golang:latest as builder
+MAINTAINER jengi77
 
 RUN mkdir /build
 ADD . /build/
