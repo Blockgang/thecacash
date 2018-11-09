@@ -21,6 +21,8 @@
 
   <!-- Functions -->
   <script src="main.js"></script>
+  <script src="js/sha256.js"></script>
+  <script src="js/aes.js"></script>
   <!-- <script src="handcash.js"></script> -->
 
 
@@ -65,6 +67,8 @@
         <li><a href="#new">NEW</a></li>
         <li><a href="#videos">VIDEOS</a></li>
         <li><a href="#channels">CHANNELS</a></li>
+        <li><a onclick="document.getElementById('loginModal').style.display='block'">LOGIN</a></li>
+        <li><a onclick="document.getElementById('signupModal').style.display='block'">SIGNUP</a></li>
       </ul>
     </div>
   </div>
@@ -143,6 +147,59 @@
   </div>
 </div>
 
+<!-- Login Modal -->
+<div id="loginModal" class="modal">
+  <div class="modal-content">
+    <div class="imgcontainer">
+      <span onclick="document.getElementById('loginModal').style.display='none'" class="close" title="Close Modal">&times;</span>
+      <h1>Login</h1>
+    </div>
+
+    <div class="container">
+      <label for="uname"><b>Username</b></label>
+      <input type="text" placeholder="Enter Username" id="loginUsername" required>
+
+      <label for="psw"><b>Password</b></label>
+      <input type="password" placeholder="Enter Password" id="loginPassword" required>
+
+      <button onclick="login()">Login</button>
+    </div>
+
+    <div class="container" style="background-color:#f1f1f1">
+      <button type="button" onclick="document.getElementById('loginModal').style.display='none'" class="cancelbtn">Cancel</button>
+      <span class="psw">Forgot <a href="#">password?</a></span>
+    </div>
+  </div>
+</div>
+
+<!-- Signup Modal -->
+<div id="signupModal" class="modal">
+  <div class="modal-content">
+    <div class="imgcontainer">
+      <span onclick="document.getElementById('signupModal').style.display='none'" class="close" title="Close Modal">&times;</span>
+      <h1>Signup</h1>
+    </div>
+
+    <div class="container">
+      <label><b>Username</b></label>
+      <input type="text" placeholder="Enter Username" id="signupUsername" required>
+
+      <label><b>Password</b></label>
+      <input type="password" placeholder="Enter Password" id="signupPassword" required>
+
+      <label><b>Privatekey</b></label>
+      <input type="password" placeholder="Enter Privatekey" id="signupPrivatekey" required>
+
+      <button onclick="signup()">Signup</button>
+    </div>
+
+    <div class="container" style="background-color:#f1f1f1">
+      <button type="button" onclick="document.getElementById('signupModal').style.display='none'" class="cancelbtn">Cancel</button>
+      <span class="psw">Forgot <a href="#">password?</a></span>
+    </div>
+  </div>
+</div>
+
 <!-- Cashport Output -->
 <div id="cashport-container">cashport</div>
 
@@ -203,6 +260,18 @@
   </a>
   <p><a href="#about" title="About">About</a> | <a href="#protocol" title="Protocol">Protocol</a> | <a href="#donate" title="Donate">Donate</a></p>
 </footer>
+
+<script>
+// Get the modal
+var loginModal = document.getElementById('loginModal');
+
+// When the user clicks anywhere outside of the modal, close it
+window.onclick = function(event) {
+    if (event.target == loginModal) {
+        loginModal.style.display = "none";
+    }
+}
+</script>
 
 <script>
 $(document).ready(function(){
