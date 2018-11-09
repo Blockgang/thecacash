@@ -241,10 +241,29 @@ function login(){
   xhr.onreadystatechange = function () {
       if (xhr.readyState === 4 && xhr.status === 200) {
           var json = JSON.parse(xhr.responseText);
+          if (json.Login) {
           var decryptedPrivatekey = CryptoJS.AES.decrypt(json.EncryptedPk,password).toString(CryptoJS.enc.Utf8);
           console.log(json);
-          console.log("decrypted PK:",decryptedPrivatekey)
+          console.log("Login True => PK:",decryptedPrivatekey);
+
+          document.getElementById('loginMenu').style.display='none'
+          document.getElementById('signupMenu').style.display='none'
+          document.getElementById('usernameMenu').style.display='block'
+          var userIcon = document.createElement('img');
+          userIcon.src = 'icons/user.png'
+          userIcon.width = '15px'
+          document.getElementById('usernameMenuLink').innerHTML = "";
+          document.getElementById('usernameMenuLink').appendChild(userIcon);
+          document.getElementById('usernameMenuLink').innerHTML += json.Username;
+
+          var loginModal = document.getElementById('loginModal');
+          loginModal.style.display = "none";
+
           localStorage.setItem('pk', decryptedPrivatekey);
+          localStorage.setItem('username', json.Username);
+        } else {
+          console.log("Login False");
+        }
       }
   };
   var data = JSON.stringify({"Username": username, "PasswordHash": passwordHash});

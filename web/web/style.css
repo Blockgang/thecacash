@@ -1,3 +1,7 @@
+#usernameMenuLink img {
+  width: 15px;
+}
+
 /* Full-width input fields */
 input[type=text], input[type=password] {
     width: 100%;
@@ -84,8 +88,6 @@ span.psw {
     color: red;
     cursor: pointer;
 }
-
-
 
 .like:active {
     animation: shake 0.5s;
