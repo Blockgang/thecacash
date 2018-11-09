@@ -251,7 +251,6 @@ function login(){
           document.getElementById('usernameMenu').style.display='block'
           var userIcon = document.createElement('img');
           userIcon.src = 'icons/user.png'
-          userIcon.width = '15px'
           document.getElementById('usernameMenuLink').innerHTML = "";
           document.getElementById('usernameMenuLink').appendChild(userIcon);
           document.getElementById('usernameMenuLink').innerHTML += json.Username;
