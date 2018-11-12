@@ -29,18 +29,19 @@ docker-compose down
 ### GET ###
 Get Transaction Infos
 ```
-http://127.0.0.1:8000/api/tx/{txid}
-http://127.0.0.1:8000/api/tx/569be470b326e50afbbc739531ea428b5c6977fd900091e3a8faeaf90b85140b
+http://192.168.12.5:8000/api/tx/{txid}
+http://192.168.12.5:8000/api/tx/569be470b326e50afbbc739531ea428b5c6977fd900091e3a8faeaf90b85140b
 ```
-Get All Transactions
+Get All Transactions (inkl. like,comment counter + score)
 ```
-http://127.0.0.1:8000/api/tx/positions
+http://192.168.12.5:8000/api/tx/positions
 ```
+
 ### POST ###
 #### SIGNUP ####
 POST-Request:
 ```
-curl -X POST -i 'http://127.0.0.1:8000/api/signup' --data '{"Username":"testuser8","PasswordHash":"105d5b6c13df8c30686b0d75b89d98ada04dc32421fd97acfb77bc81e43f6075","EncryptedPk":"this is the excrypted privatekey"}'
+curl -X POST -i 'http://192.168.12.5:8000/api/signup' --data '{"Username":"testuser8","PasswordHash":"105d5b6c13df8c30686b0d75b89d98ada04dc32421fd97acfb77bc81e43f6075","EncryptedPk":"this is the excrypted privatekey"}'
 ```
 Possible Responses:
 ```
@@ -52,7 +53,7 @@ Failed:
 #### LOGIN ####
 POST-Request:
 ```
-curl -X POST -H 'Content-Type: application/json' -i 'http://127.0.0.1:8000/api/login' --data '{"Username":"testuser8","PasswordHash":"105d5b6c13df8c30686b0d75b89d98ada04dc32421fd97acfb77bc81e43f6075"}'
+curl -X POST -H 'Content-Type: application/json' -i 'http://192.168.12.5:8000/api/login' --data '{"Username":"testuser8","PasswordHash":"105d5b6c13df8c30686b0d75b89d98ada04dc32421fd97acfb77bc81e43f6075"}'
 
 OK:
 {"Username":"**username**","EncryptedPk":"**enc_key**","Login":true}
@@ -73,6 +74,8 @@ Failed:
 ```
 go get github.com/bradfitz/gomemcache/memcache
 go get github.com/gorilla/mux
+go get github.com/pmylund/sortutil
+go get github.com/junhsieh/goexamples/fieldbinding/fieldbinding
 ```
 
 ## Links?
@@ -104,26 +107,9 @@ OP_RETURN (PD1)0xe902 (PD2)magnet:?xt=urn:btih:678d1a0744863813bd11e12c473e0a2ab
 ...
 ```
 
-Prefix: 0xe903 (Like + Tip)
-```
-# OP_RETURN 0xe903 <magnet-hash>
+Prefix: 0x6d04 (MEMO Like + Tip)
+Prefix: 0x6d03 (MEMO Reply)
 
-OP_RETURN 0xe902 08ada5a7a6183aae1e09d831df6748d566095a10
-```
-
-Prefix: 0xe904 (Dislike)
-```
-# OP_RETURN 0xe904 <magnet-hash>
-
-OP_RETURN 0xe904 08ada5a7a6183aae1e09d831df6748d566095a10
-```
-
-Prefix: 0xe905 (Comment)
-```
-# OP_RETURN 0xe905 <magnet-hash>|<comment>
-
-OP_RETURN 0xe905 08ada5a7a6183aae1e09d831df6748d566095a10|Bestes Video überhaupt =)...
-```
 
 MEMO-Example:
 ```

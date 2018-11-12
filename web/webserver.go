@@ -8,25 +8,42 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"math"
 	"net/http"
+	"time"
 
 	"github.com/bradfitz/gomemcache/memcache"
 	"github.com/gorilla/mux"
+	"github.com/pmylund/sortutil"
 
 	"github.com/junhsieh/goexamples/fieldbinding/fieldbinding"
 
 	_ "github.com/go-sql-driver/mysql"
 )
 
-type Tx struct {
+type Theca struct {
 	Txid           string
 	Link           string
 	DataType       string
 	Title          string
-	BlockTimestamp uint32
+	BlockTimestamp int64
 	BlockHeight    uint32
 	Sender         string
 	Likes          uint32
+	Comments       uint32
+	Timestamp      int64
+	Score          float64
+}
+
+type Comment struct {
+	Txid           string
+	TxHash         string
+	Message        string
+	BlockTimestamp int64
+	BlockHeight    uint32
+	Sender         string
+	Timestamp      int64
+	Score          float64
 }
 
 var db *sql.DB
@@ -49,6 +66,8 @@ func main() {
 
 	//Response
 	router.HandleFunc("/api/tx/positions", getPositions).
+		Methods("GET")
+	router.HandleFunc("/api/comments/{txid:[a-fA-F0-9]{64}}", getComments).
 		Methods("GET")
 	router.HandleFunc("/api/login", postLogin).
 		Methods("POST")
@@ -184,7 +203,7 @@ func check_login(userName string, passwordHash string) (string, error) {
 		}
 		cacheBytes := new(bytes.Buffer)
 		json.NewEncoder(cacheBytes).Encode(encryptedKey)
-		err = set_cache2(cache_key, cacheBytes.Bytes(), 5)
+		err = set_cache(cache_key, cacheBytes.Bytes(), 5)
 		if err != nil {
 			fmt.Println("Set Cache Error:", err)
 		}
@@ -206,9 +225,40 @@ func getTransactionData(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(txData)
 }
 
+func calculateScore(likes uint32, timestamp int64) float64 {
+	score := float64(0)
+	gravity := float64(1.8)
+	now := time.Now().Unix()
+	hours := float64(now-int64(timestamp)) / 3600
+	if likes > 0 {
+		score = float64(likes-1) / math.Pow((hours+2), gravity)
+	}
+	return score
+}
+
+func getComments(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	txid := vars["txid"]
+	fmt.Println("accessed getComments", txid)
+	comments, err := getCommentsFromBackend(txid)
+	if err != nil {
+		log.Fatal(err)
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(comments)
+}
+
 func getPositions(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("accessed getPositions")
 	txs, err := getPositionsFromBackend()
+	fmt.Println(txs)
+	for tx := range txs {
+		if txs[tx].BlockTimestamp == 0 {
+			txs[tx].BlockTimestamp = txs[tx].Timestamp
+		}
+		txs[tx].Score = calculateScore(txs[tx].Likes, txs[tx].BlockTimestamp)
+	}
+	sortutil.DescByField(txs, "Score")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -216,13 +266,13 @@ func getPositions(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(txs)
 }
 
-func getTransactionDataFromBackend(txid string) (Tx, error) {
-	var tx Tx
+func getTransactionDataFromBackend(txid string) (Theca, error) {
+	var tx Theca
 	var errCache error
 	var err error
 	var cache *memcache.Item
 
-	sql_query := fmt.Sprintf("SELECT txid,hash,type,title,blocktimestamp,blockheight,sender FROM prefix_0xe901 WHERE txid='%s'", txid)
+	sql_query := fmt.Sprintf("SELECT txid,hash,type,title,blocktimestamp,blockheight,sender,UNIX_TIMESTAMP(timestamp) FROM prefix_0xe901 WHERE txid='%s'", txid)
 	fmt.Println(sql_query)
 	cache_key := hasher(sql_query)
 	cache, errCache = get_cache(cache_key)
@@ -238,9 +288,10 @@ func getTransactionDataFromBackend(txid string) (Tx, error) {
 			var link string
 			var dataType string
 			var title string
-			var blockTimestamp uint32
+			var blockTimestamp int64
 			var blockHeight uint32
 			var sender string
+			var timestamp int64
 
 			err = query.Scan(
 				&txid,
@@ -249,20 +300,22 @@ func getTransactionDataFromBackend(txid string) (Tx, error) {
 				&title,
 				&blockTimestamp,
 				&blockHeight,
-				&sender)
+				&sender,
+				&timestamp)
 
-			tx = Tx{
+			tx = Theca{
 				Txid:           txid,
 				Link:           link,
 				DataType:       dataType,
 				Title:          title,
 				BlockTimestamp: blockTimestamp,
 				BlockHeight:    blockHeight,
-				Sender:         sender}
+				Sender:         sender,
+				Timestamp:      timestamp}
 		}
 		cacheBytes := new(bytes.Buffer)
 		json.NewEncoder(cacheBytes).Encode(tx)
-		err = set_cache2(cache_key, cacheBytes.Bytes(), 5)
+		err = set_cache(cache_key, cacheBytes.Bytes(), 5)
 		if err != nil {
 			fmt.Println("Set Cache Error:", err)
 		}
@@ -272,13 +325,69 @@ func getTransactionDataFromBackend(txid string) (Tx, error) {
 	return tx, err
 }
 
-func getPositionsFromBackend() ([]Tx, error) {
-	var txs []Tx
+func getCommentsFromBackend(txid string) ([]Comment, error) {
+	var txs []Comment
+	var errCache error
+	var err error
+	var cache *memcache.Item
+	sql_query := fmt.Sprintf("SELECT txid,txhash,message,blocktimestamp,blockheight,sender,UNIX_TIMESTAMP(timestamp) FROM prefix_0x6d03 WHERE txhash = '%s'", txid)
+	fmt.Println(sql_query)
+	cache_key := hasher(sql_query)
+	cache, errCache = get_cache(cache_key)
+	if errCache != nil {
+		query, err := db.Query(sql_query)
+		if err != nil {
+			return nil, err
+		}
+		defer query.Close()
+
+		for query.Next() {
+			var txid string
+			var txhash string
+			var message string
+			var blockTimestamp int64
+			var blockHeight uint32
+			var sender string
+			var timestamp int64
+
+			err = query.Scan(
+				&txid,
+				&txhash,
+				&message,
+				&blockTimestamp,
+				&blockHeight,
+				&sender,
+				&timestamp)
+
+			txs = append(txs,
+				Comment{
+					Txid:           txid,
+					TxHash:         txhash,
+					Message:        message,
+					BlockTimestamp: blockTimestamp,
+					BlockHeight:    blockHeight,
+					Sender:         sender,
+					Timestamp:      timestamp})
+		}
+		cacheBytes := new(bytes.Buffer)
+		json.NewEncoder(cacheBytes).Encode(txs)
+		err = set_cache(cache_key, cacheBytes.Bytes(), 5)
+		if err != nil {
+			fmt.Println("Set Cache Error:", err)
+		}
+	} else {
+		json.Unmarshal(cache.Value, &txs)
+	}
+	return txs, err
+}
+
+func getPositionsFromBackend() ([]Theca, error) {
+	var txs []Theca
 	var errCache error
 	var err error
 	var cache *memcache.Item
 
-	sql_query := "SELECT txid,hash,type,title,blocktimestamp,blockheight,sender,likes FROM prefix_0xe901"
+	sql_query := "SELECT txid,hash,type,title,blocktimestamp,blockheight,sender,likes,comments FROM prefix_0xe901"
 	cache_key := hasher(sql_query)
 	cache, errCache = get_cache(cache_key)
 	if errCache != nil {
@@ -293,10 +402,11 @@ func getPositionsFromBackend() ([]Tx, error) {
 			var link string
 			var dataType string
 			var title string
-			var blockTimestamp uint32
+			var blockTimestamp int64
 			var blockHeight uint32
 			var sender string
 			var likes uint32
+			var comments uint32
 
 			err = query.Scan(
 				&txid,
@@ -306,10 +416,11 @@ func getPositionsFromBackend() ([]Tx, error) {
 				&blockTimestamp,
 				&blockHeight,
 				&sender,
-				&likes)
+				&likes,
+				&comments)
 
 			txs = append(txs,
-				Tx{
+				Theca{
 					Txid:           txid,
 					Link:           link,
 					DataType:       dataType,
@@ -317,23 +428,23 @@ func getPositionsFromBackend() ([]Tx, error) {
 					BlockTimestamp: blockTimestamp,
 					BlockHeight:    blockHeight,
 					Sender:         sender,
-					Likes:          likes})
+					Likes:          likes,
+					Comments:       comments})
 		}
 		cacheBytes := new(bytes.Buffer)
 		json.NewEncoder(cacheBytes).Encode(txs)
-		err = set_cache2(cache_key, cacheBytes.Bytes(), 5)
+		err = set_cache(cache_key, cacheBytes.Bytes(), 5)
 		if err != nil {
 			fmt.Println("Set Cache Error:", err)
 		}
 	} else {
 		json.Unmarshal(cache.Value, &txs)
 	}
-
 	return txs, err
 }
 
-func selectFromMysql2() ([]Tx, error) {
-	var txs []Tx
+func selectFromMysql2() ([]Theca, error) {
+	var txs []Theca
 	var errCache error
 	var err error
 	var cache *memcache.Item
@@ -368,7 +479,7 @@ func selectFromMysql2() ([]Tx, error) {
 
 		cacheBytes := new(bytes.Buffer)
 		json.NewEncoder(cacheBytes).Encode(outArr)
-		err = set_cache2(cache_key, cacheBytes.Bytes(), 5)
+		err = set_cache(cache_key, cacheBytes.Bytes(), 5)
 		if err != nil {
 			fmt.Println("Set Cache Error:", err)
 		}
@@ -390,13 +501,7 @@ func get_cache(key string) (*memcache.Item, error) {
 	return val, err
 }
 
-func set_cache(key string, value string, expiretime int32) error {
-	fmt.Println("set key:", key)
-	err := mc.Set(&memcache.Item{Key: key, Value: []byte(value), Expiration: expiretime})
-	return err
-}
-
-func set_cache2(key string, value []byte, expiretime int32) error {
+func set_cache(key string, value []byte, expiretime int32) error {
 	fmt.Println("set key:", key)
 	err := mc.Set(&memcache.Item{Key: key, Value: value, Expiration: expiretime})
 	return err

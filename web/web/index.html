@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <title>THECA.CASH Media platform (OP_RETURN 1.4)</title>
+  <title>theca.cash</title>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <!-- Bootstrap -->
@@ -21,6 +21,10 @@
 
   <!-- Functions -->
   <script src="main.js"></script>
+  <script src="js/sha256.js"></script>
+  <script src="js/aes.js"></script>
+  <!-- <script src="handcash.js"></script> -->
+
 
   <!-- Stylesheet -->
   <link rel="stylesheet" type="text/css" href="style.css">
@@ -63,6 +67,9 @@
         <li><a href="#new">NEW</a></li>
         <li><a href="#videos">VIDEOS</a></li>
         <li><a href="#channels">CHANNELS</a></li>
+        <li id="loginMenu"><a onclick="document.getElementById('loginModal').style.display='block'">LOGIN</a></li>
+        <li id="signupMenu"><a onclick="document.getElementById('signupModal').style.display='block'">SIGNUP</a></li>
+        <li id="usernameMenu"><a id="usernameMenuLink">Test</a></li>
       </ul>
     </div>
   </div>
@@ -83,7 +90,7 @@
         <div class="input-group home-search">
           <input id="search" type="text" class="form-control" placeholder="Beethoven" required>
           <div class="input-group-btn">
-            <a class="btn btn-danger" onclick="bitdb_get_magnetlinks(100);"><span class="glyphicon glyphicon-search"></span></a>
+            <a class="btn btn-danger" onclick="getFromAPI();"><span class="glyphicon glyphicon-search"></span></a>
           </div>
         </div>
       </div>
@@ -141,6 +148,69 @@
   </div>
 </div>
 
+<!-- Login Modal -->
+<div id="loginModal" class="modal">
+  <div class="modal-content">
+    <div class="imgcontainer">
+      <span onclick="document.getElementById('loginModal').style.display='none'" class="close" title="Close Modal">&times;</span>
+      <h1>Login</h1>
+    </div>
+
+    <div class="container">
+      <label for="uname"><b>Username</b></label>
+      <input type="text" placeholder="Enter Username" id="loginUsername" required>
+
+      <label for="psw"><b>Password</b></label>
+      <input type="password" placeholder="Enter Password" id="loginPassword" required>
+
+      <button onclick="login()">Login</button>
+    </div>
+
+    <div class="container" style="background-color:#f1f1f1">
+      <button type="button" onclick="document.getElementById('loginModal').style.display='none'" class="cancelbtn">Cancel</button>
+      <span class="psw">Forgot <a href="#">password?</a></span>
+    </div>
+  </div>
+</div>
+
+<!-- Signup Modal -->
+<div id="signupModal" class="modal">
+  <div class="modal-content">
+    <div class="imgcontainer">
+      <span onclick="document.getElementById('signupModal').style.display='none'" class="close" title="Close Modal">&times;</span>
+      <h1>Signup</h1>
+    </div>
+
+    <div class="container">
+      <label><b>Username</b></label>
+      <input type="text" placeholder="Enter Username" id="signupUsername" required>
+
+      <label><b>Password</b></label>
+      <input type="password" placeholder="Enter Password" id="signupPassword" required>
+
+      <label><b>Privatekey</b></label>
+      <input type="password" placeholder="Enter Privatekey" id="signupPrivatekey" required>
+
+      <button onclick="signup()">Signup</button>
+    </div>
+
+    <div class="container" style="background-color:#f1f1f1">
+      <button type="button" onclick="document.getElementById('signupModal').style.display='none'" class="cancelbtn">Cancel</button>
+      <span class="psw">Forgot <a href="#">password?</a></span>
+    </div>
+  </div>
+</div>
+
+<!-- Cashport Output -->
+<div id="cashport-container">cashport</div>
+
+<!-- Modal Box (Comments) -->
+<div id="commentsModal" class="modal">
+  <div class="modal-content">
+    <span class="close">&times;</span>
+  </div>
+</div>
+
 <!-- Search Output -->
 <div class="container-fluid bg-grey" id="bitdb_output_container" style="display:none">
     <table class="table" id="bitdb_output_table">
@@ -193,6 +263,18 @@
 </footer>
 
 <script>
+// Get the modal
+var loginModal = document.getElementById('loginModal');
+
+// When the user clicks anywhere outside of the modal, close it
+window.onclick = function(event) {
+    if (event.target == loginModal) {
+        loginModal.style.display = "none";
+    }
+}
+</script>
+
+<script>
 $(document).ready(function(){
   // Add smooth scrolling to all links in navbar + footer link
   $(".navbar a, footer a[href='#myPage']").on('click', function(event) {
@@ -229,7 +311,7 @@ $(document).ready(function(){
 })
 </script>
 <script>
-  bitdb_get_magnetlinks(100);
+  getFromAPI();
 </script>
 
 </body>
