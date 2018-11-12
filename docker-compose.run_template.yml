@@ -1,0 +1,74 @@
+version: '3.6'
+services:
+
+  db:
+    build: ./db
+    image: theca.cash/theca-mysql
+    container_name: theca-mysql
+    volumes:
+      - ${DATABASE_PATH}:/var/lib/mysql        
+    environment:
+      TZ: ${TZ}    
+      MYSQL_DATABASE: ${MYSQL_DATABASE}     
+      MYSQL_ROOT_PASSWORD: /run/secrets/mysql_root_password
+    networks:
+      - ${DOCKER_NETWORK_NAME}      
+    command: mysqld --event_scheduler="ON"
+    secrets:
+      - mysql_root_password
+
+  memcache:
+    build: ./memcache
+    image: theca.cash/theca-cache
+    container_name: theca-cache
+    networks:
+      - ${DOCKER_NETWORK_NAME}
+  sync:
+    build: ./sync
+    image: theca.cash/theca-sync
+    container_name: theca-sync
+    depends_on:
+      - db 
+    networks:
+      - ${DOCKER_NETWORK_NAME}        
+    restart: always
+
+  web:
+    build: ./web
+    image: theca.cash/theca-webserver
+    container_name: theca-webserver
+    volumes:
+      - ./web/web/:/var/www/
+    environment:
+     - TZ=${TZ}
+     - DATABASE_URL=${DATABASE_URL}
+     - DATABASE_USERNAME=${DATABASE_USERNAME}
+     - DATABASE_PASSWORD=DOCKERSECRET:database_password    
+    ports:
+      - "8080:8000"
+    networks:
+      - ${DOCKER_NETWORK_NAME}
+    secrets:
+      - database_password
+  run-theca-client:
+    build: ./run-client
+    image: theca.cash/run-theca-client
+    container_name: run-theca-client
+    volumes:
+      - ./build-client/build:/build
+    environment:
+      - TZ=${TZ}
+      - INTERNAL_WEBSERVER=theca-webserver
+      - INTERNAL_PORT_WEBSERVER=${INTERNAL_PORT_WEBSERVER}
+      - INTERNAL_PORT_RUN_THECA_CLIENT=${INTERNAL_PORT_RUN_THECA_CLIENT}
+    networks:
+      - ${DOCKER_NETWORK_NAME}
+        
+secrets:
+  database_password:
+    file: secrets/database_password.txt      
+  mysql_root_password:
+    file: secrets/mysql_root_password.txt
+networks:
+  thecanet:
+    external: true

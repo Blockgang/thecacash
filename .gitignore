@@ -1,2 +1,9 @@
 web/webserver
 sync/blockchain_sync
+
+# Docker
+docker-compose.stack_build.yml
+docker-compose.stack_run.yml
+docker-compose.stack_common-services.yml
+secrets/*
+!secrets/.gitkeep

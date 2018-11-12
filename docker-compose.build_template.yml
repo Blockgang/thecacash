@@ -1,0 +1,27 @@
+version: '3.6'
+
+services:
+    build-theca-client:
+        build: ./build-client
+        image: theca.cash/build-theca-client
+        deploy:
+            restart_policy:
+               condition: on-failure
+               delay: 5s
+               max_attempts: 2
+        container_name: build-theca-client
+        volumes:
+            - ../theca_cash_client:/opt/src
+            - ./build-client/build:/opt/build
+        environment:
+            - TZ=${TZ}
+            - NODE_ENV=${NODE_ENV}
+            - SERVER_PROTOCOL=${SERVER_PROTOCOL}
+            - ADDRESS_WEBSERVER=${ADDRESS_WEBSERVER}
+            - ADDRESS_CLIENT=${ADDRESS_CLIENT}
+            - SERVER_PORT=${SERVER_PORT}
+        networks:
+            - ${DOCKER_NETWORK_NAME}
+networks:
+  thecanet:
+    external: true

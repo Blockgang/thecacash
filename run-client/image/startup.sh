@@ -11,6 +11,7 @@ echo "=================================="
 echo "run main application"
 echo "=================================="
 npm install express
+npm install cors
 npm install store
 npm install body-parser
 node server.js
