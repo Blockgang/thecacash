@@ -19,7 +19,8 @@ function reverseBytes(txid){
 }
 
 function send(){ //217 chars
-  var pkey = document.getElementById('pkey').value
+  // var pkey = document.getElementById('pkey').value
+  var pkey = localStorage.getItem('pk');
   var title = document.getElementById('title').value
   var type = document.getElementById('data_type').value
   var hash = document.getElementById('hash').value
@@ -37,7 +38,8 @@ function send(){ //217 chars
 
 
 function reply(txid,comment){ //comment 184chars
-  var pkey = document.getElementById('pkey').value
+  // var pkey = document.getElementById('pkey').value
+  var pkey = localStorage.getItem('pk');
   var commentCounter = document.getElementById("comment_counter_"+txid)
   var commentImg = document.getElementById("comment_"+txid)
   var prefix = "0x6d03" // memo reply
@@ -59,7 +61,8 @@ function reply(txid,comment){ //comment 184chars
 }
 
 function like(txid,counter){
-  var pkey = document.getElementById('pkey').value
+  // var pkey = document.getElementById('pkey').value
+  var pkey = localStorage.getItem('pk');
   var likeCounter = document.getElementById("like_counter_"+txid)
   var likeImg = document.getElementById("like_"+txid)
   var prefix = "0x6d04" //memo like
@@ -82,39 +85,40 @@ function like(txid,counter){
   })
 }
 
-function follow(address){
-  var pkey = document.getElementById('pkey').value
-  var prefix = "0x6d05"
-  //todo: validate txid pattern
-  var tx = {
-      data: [prefix, txid],
-      cash: { key: pkey }
-    }
-  datacash.send(tx, function(err, res) {
-    if(err != null){
-      return false
-    }else{
-      return true
-    }
-  })
-}
-
-function unfollow(address){
-  var pkey = document.getElementById('pkey').value
-  var prefix = "0x6d06"
-  //todo: validate txid pattern
-  var tx = {
-      data: [prefix, txid],
-      cash: { key: pkey }
-    }
-  datacash.send(tx, function(err, res) {
-    if(err != null){
-      return false
-    }else{
-      return true
-    }
-  })
-}
+// function follow(address){
+//   // var pkey = document.getElementById('pkey').value
+//   var pkey = localStorage.getItem('pk');
+//   var prefix = "0x6d05"
+//   //todo: validate txid pattern
+//   var tx = {
+//       data: [prefix, txid],
+//       cash: { key: pkey }
+//     }
+//   datacash.send(tx, function(err, res) {
+//     if(err != null){
+//       return false
+//     }else{
+//       return true
+//     }
+//   })
+// }
+//
+// function unfollow(address){
+//   var pkey = document.getElementById('pkey').value
+//   var prefix = "0x6d06"
+//   //todo: validate txid pattern
+//   var tx = {
+//       data: [prefix, txid],
+//       cash: { key: pkey }
+//     }
+//   datacash.send(tx, function(err, res) {
+//     if(err != null){
+//       return false
+//     }else{
+//       return true
+//     }
+//   })
+// }
 
 function check_link(link){
   return link
@@ -223,6 +227,69 @@ function bitdb_get_magnetlinks(limit) {
     };
   })
 };
+
+function login(){
+  var username = document.getElementById('loginUsername').value;
+  var password = document.getElementById('loginPassword').value;
+
+  var passwordHash = CryptoJS.SHA256(password).toString();
+
+  var xhr = new XMLHttpRequest();
+  var url = "http://192.168.12.5:8000/api/login";
+  xhr.open("POST", url, true);
+  xhr.setRequestHeader("Content-Type", "application/json");
+  xhr.onreadystatechange = function () {
+      if (xhr.readyState === 4 && xhr.status === 200) {
+          var json = JSON.parse(xhr.responseText);
+          if (json.Login) {
+          var decryptedPrivatekey = CryptoJS.AES.decrypt(json.EncryptedPk,password).toString(CryptoJS.enc.Utf8);
+          console.log(json);
+          console.log("Login True => PK:",decryptedPrivatekey);
+
+          document.getElementById('loginMenu').style.display='none'
+          document.getElementById('signupMenu').style.display='none'
+          document.getElementById('usernameMenu').style.display='block'
+          var userIcon = document.createElement('img');
+          userIcon.src = 'icons/user.png'
+          document.getElementById('usernameMenuLink').innerHTML = "";
+          document.getElementById('usernameMenuLink').appendChild(userIcon);
+          document.getElementById('usernameMenuLink').innerHTML += json.Username;
+
+          var loginModal = document.getElementById('loginModal');
+          loginModal.style.display = "none";
+
+          localStorage.setItem('pk', decryptedPrivatekey);
+          localStorage.setItem('username', json.Username);
+        } else {
+          console.log("Login False");
+        }
+      }
+  };
+  var data = JSON.stringify({"Username": username, "PasswordHash": passwordHash});
+  xhr.send(data);
+}
+
+function signup(){
+  var username = document.getElementById('signupUsername').value;
+  var password = document.getElementById('signupPassword').value;
+  var privatekey = document.getElementById('signupPrivatekey').value;
+
+  var passwordHash = CryptoJS.SHA256(password).toString();
+  var encryptedPrivatekey = CryptoJS.AES.encrypt(privatekey,password).toString();
+
+  var xhr = new XMLHttpRequest();
+  var url = "http://192.168.12.5:8000/api/signup";
+  xhr.open("POST", url, true);
+  xhr.setRequestHeader("Content-Type", "application/json");
+  xhr.onreadystatechange = function () {
+      if (xhr.readyState === 4 && xhr.status === 200) {
+          var json = JSON.parse(xhr.responseText);
+          console.log(json);
+      }
+  };
+  var data = JSON.stringify({"Username": username, "PasswordHash": passwordHash, "EncryptedPk": encryptedPrivatekey});
+  xhr.send(data);
+}
 
 
 function openComments(txid){
