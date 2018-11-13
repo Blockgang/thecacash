@@ -4,7 +4,7 @@ Media plattform based on Bitcoin Cash (OP_RETURN)
 ## Setup
 
 ### theca.cash
-get & build containers manually
+#### get & build containers manually
 ```
 git clone https://github.com/Blockgang/theca.cash.git
 docker network create --subnet 192.168.12.0/24 --gateway 192.168.12.254 thecanet
@@ -23,7 +23,7 @@ stop dockers
 ```
 docker-compose down
 ```
-get & build containers by admin_tool.sh
+#### get & build containers by admin_tool.sh
 ```
 git clone https://github.com/Blockgang/theca.cash.git
 ./admin_tool.sh
@@ -36,9 +36,8 @@ Choose Option 8 to remove all containers
 Choose Option 9 to show the log of the build-client docker
 Choose Option 10 to show the log of the webserver, memcache, mysql-db and run-client dockers
 Choose Option 11 to exit from admin_tool
-
-*You should do the whole setup with the admin_tool, otherwise it will be a bit complicated. The reason for this is that there are two different docker compose files into which single configurations and docker secrets are dynamically injected.*
 ```
+*You should do the whole setup with the admin_tool, otherwise it will be a bit complicated. The reason for this is that there are two different docker compose files into which single configurations and docker secrets are dynamically injected.*
 
 
 ## API Access
