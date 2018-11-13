@@ -11,7 +11,7 @@ services:
                max_attempts: 2
         container_name: build-theca-client
         volumes:
-            - ../theca_cash_client:/opt/src
+            - ./theca_cash_client:/opt/src
             - ./build-client/build:/opt/build
         environment:
             - TZ=${TZ}
