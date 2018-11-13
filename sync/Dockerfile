@@ -11,6 +11,6 @@ RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -ldflags '-extldflag
 FROM scratch
 COPY --from=builder /build/syncer /app/
 WORKDIR /app
-#EXPOSE 8000
+EXPOSE 11211 
 CMD ["./syncer"]
 

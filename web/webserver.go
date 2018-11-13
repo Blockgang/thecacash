@@ -1,6 +1,7 @@
 package main
 
 import (
+        "os"
 	"bytes"
 	"crypto/sha256"
 	"database/sql"
@@ -51,11 +52,11 @@ var mc *memcache.Client
 
 func main() {
 	//MEMCACHED
-	mc = memcache.New("192.168.12.3:11211")
+	mc = memcache.New(os.Getenv("MEMCACHE_HOSTNAME") + ":" + os.Getenv("MEMCACHE_PORT"))
 
 	//MYSQL
 	var err error
-	db, err = sql.Open("mysql", "root:8drRNG8RWw9FjzeJuavbY6f9@tcp(192.168.12.2:3306)/theca")
+	db, err = sql.Open("mysql", os.Getenv("DATABASE_USERNAME") + ":" + os.Getenv("DATABASE_PASSWORD") + "@tcp(" + os.Getenv("DATABASE_HOSTNAME") + os.Getenv("DATABASE_PORT") + ")/"+ os.Getenv("DATABASE_NAME"))
 	if err != nil {
 		log.Fatal(err)
 	}

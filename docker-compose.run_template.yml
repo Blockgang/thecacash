@@ -9,7 +9,7 @@ services:
       - ${DATABASE_PATH}:/var/lib/mysql        
     environment:
       TZ: ${TZ}    
-      MYSQL_DATABASE: ${MYSQL_DATABASE}     
+      MYSQL_DATABASE: ${DATABASE_NAME}     
       MYSQL_ROOT_PASSWORD: /run/secrets/mysql_root_password
     networks:
       - ${DOCKER_NETWORK_NAME}      
@@ -41,7 +41,11 @@ services:
       - ./web/web/:/var/www/
     environment:
      - TZ=${TZ}
-     - DATABASE_URL=${DATABASE_URL}
+     - MEMCACHE_HOSTNAME=${MEMCACHE_HOSTNAME}
+     - MEMCACHE_PORT=${MEMCACHE_PORT}
+     - DATABASE_NAME=${DATABASE_NAME}
+     - DATABASE_HOSTNAME=${DATABASE_HOSTNAME}
+     - DATABASE_PORT=${DATABASE_PORT}
      - DATABASE_USERNAME=${DATABASE_USERNAME}
      - DATABASE_PASSWORD=DOCKERSECRET:database_password    
     ports:
@@ -58,7 +62,7 @@ services:
       - ./build-client/build:/build
     environment:
       - TZ=${TZ}
-      - INTERNAL_WEBSERVER=theca-webserver
+      - INTERNAL_WEBSERVER=${WEBSERVER_HOSTNAME}
       - INTERNAL_PORT_WEBSERVER=${INTERNAL_PORT_WEBSERVER}
       - INTERNAL_PORT_RUN_THECA_CLIENT=${INTERNAL_PORT_RUN_THECA_CLIENT}
     networks:

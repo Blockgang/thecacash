@@ -17,8 +17,6 @@ services:
             - TZ=${TZ}
             - NODE_ENV=${NODE_ENV}
             - SERVER_PROTOCOL=${SERVER_PROTOCOL}
-            - ADDRESS_WEBSERVER=${ADDRESS_WEBSERVER}
-            - ADDRESS_CLIENT=${ADDRESS_CLIENT}
             - SERVER_PORT=${SERVER_PORT}
         networks:
             - ${DOCKER_NETWORK_NAME}
