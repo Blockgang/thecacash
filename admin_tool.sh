@@ -47,7 +47,7 @@ function evalParams () {
 function createDockerNetwork () {
     source ${ENV_FILE}
     docker network rm ${DOCKER_NETWORK_NAME} 2> /dev/null
-    docker network create --driver=bridge --attachable ${DOCKER_NETWORK_NAME}
+    docker network create --driver=bridge --attachable ${DOCKER_NETWORK_NAME} --gateway ${NETWORK_GATEWAY} --subnet ${SUBNET}
 }
 
 function buildContainer () {
