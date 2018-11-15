@@ -67,7 +67,7 @@ type Id struct {
 	H string `json:"h"`
 }
 
-const bitdbBlockheight_query = `{
+const BitdbBlockheightQuery = `{
   "v": 3,
   "q": {
     "db": ["c"],
@@ -79,7 +79,7 @@ const bitdbBlockheight_query = `{
   }
 }`
 
-const c_query = `{
+const ConfirmedBitdbThecaQuery = `{
 	"v": 3,
 	"e": { "out.b1": "hex"  },
 	"q": {
@@ -108,7 +108,7 @@ const c_query = `{
 	}
 }`
 
-const uc_query = `{
+const UnconfirmedBitdbThecaQuery = `{
 	"v": 3,
 	"e": { "out.b1": "hex"  },
 	"q": {
@@ -132,7 +132,7 @@ const uc_query = `{
 	}
 }`
 
-const memoLikesQuery = `{
+const MemoLikesQuery = `{
 	"v": 3,
 	"e": {
 		"out.b1": "hex",
@@ -162,7 +162,7 @@ const memoLikesQuery = `{
 	}
 }`
 
-const uc_memoLikesQuery = `{
+const UnconfirmedMemoLikesQuery = `{
 	"v": 3,
 	"e": {
 		"out.b1": "hex",
@@ -187,24 +187,24 @@ const uc_memoLikesQuery = `{
 	}
 }`
 
-const memoCommentsQuery = `{
-  "v": 3,
-  "q": {
-    "find": {
+const MemoCommentsQuery = `{
+	"v": 3,
+	"q": {
+		"find": {
 			"out.h1": "6d03",
 			"$or": [{
-  			"blk.i": {
-  				"$gte" : %d
-  			}
+				"blk.i": {
+					"$gte" : %d
+				}
 			}, {
-			  "blk": null
+				"blk": null
 			}]
 		},
-    "limit": 100000
-  },
-  "r": {
-    "f": "[.[] | .tx.h as $tx | .in as $in | .blk as $blk | .out[] | select(.b0.op? and .b0.op == 106) | {txhash: .h2, message: .s3, txid: $tx, sender: $in[0].e.a, blockheight: (if $blk then $blk.i else null end), blocktimestamp: (if $blk then $blk.t else null end)}]"
-  }
+		"limit": 100000
+	},
+	"r": {
+		"f": "[.[] | .tx.h as $tx | .in as $in | .blk as $blk | .out[] | select(.b0.op? and .b0.op == 106) | {txhash: .h2, message: .s3, txid: $tx, sender: $in[0].e.a, blockheight: (if $blk then $blk.i else null end), blocktimestamp: (if $blk then $blk.t else null end)}]"
+	}
 }`
 
 var db *sql.DB
@@ -268,7 +268,7 @@ func insertMemoCommentIntoMysql(txId *string, txHash *string, message *string, s
 }
 
 func getUnconfirmed_E901(unconfirmedInDb []string) {
-	uc_body, err := getBitDbData(uc_query)
+	uc_body, err := getBitDbData(UnconfirmedBitdbThecaQuery)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -313,7 +313,7 @@ func getUnconfirmed_E901(unconfirmedInDb []string) {
 }
 
 func getConfirmed_E901(ScannerBlockHeight uint32, unconfirmedInDb []string) uint32 {
-	query := fmt.Sprintf(c_query, ScannerBlockHeight)
+	query := fmt.Sprintf(ConfirmedBitdbThecaQuery, ScannerBlockHeight)
 	response, err := getBitDbData(query)
 	if err != nil {
 		log.Fatalln(err)
@@ -378,7 +378,7 @@ func getConfirmed_E901(ScannerBlockHeight uint32, unconfirmedInDb []string) uint
 }
 
 func getUnconfirmedMemoLikes(unconfirmedInDb []string) {
-	response, err := getBitDbData(uc_memoLikesQuery)
+	response, err := getBitDbData(UnconfirmedMemoLikesQuery)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -419,7 +419,7 @@ func getUnconfirmedMemoLikes(unconfirmedInDb []string) {
 }
 
 func getMemoLikes(ScannerBlockHeight uint32, unconfirmedInDb []string) uint32 {
-	query := fmt.Sprintf(memoLikesQuery, ScannerBlockHeight)
+	query := fmt.Sprintf(MemoLikesQuery, ScannerBlockHeight)
 	response, err := getBitDbData(query)
 	if err != nil {
 		log.Fatalln(err)
@@ -477,7 +477,7 @@ func getMemoLikes(ScannerBlockHeight uint32, unconfirmedInDb []string) uint32 {
 
 func getMemoComments(ScannerBlockHeight uint32, unconfirmedInDb []string) uint32 {
 	prefix := "6d03"
-	query := fmt.Sprintf(memoCommentsQuery, ScannerBlockHeight)
+	query := fmt.Sprintf(MemoCommentsQuery, ScannerBlockHeight)
 	response, _ := getBitDbData(query)
 
 	json.Unmarshal(response, &bq)
@@ -575,7 +575,7 @@ func reverseHexStringBytes(hexString string) (string, error) {
 }
 
 func getBlockheight() uint64 {
-	response, err := getBitDbData(bitdbBlockheight_query)
+	response, err := getBitDbData(BitdbBlockheightQuery)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -593,6 +593,8 @@ func main() {
 
 	currentBlockheight := getBlockheight()
 	fmt.Println("Currentblockheight: ", currentBlockheight)
+
+	fmt.Println(MemoCommentsQuery)
 
 	ScannerBlockHeight = 550255
 	ScannerBlockHeight_E901 := ScannerBlockHeight
