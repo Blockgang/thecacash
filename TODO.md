@@ -1,7 +1,11 @@
 # TODOs
 
+## still priority / needed?
+* webtorrent performance
+* webtorrent bug fix ( videos werden nicht immer angezeigt)
 
 ## Docker
+* SQL not working
 * Fix IP / syncer bekommt keine IP
 
 ## Go Code
