@@ -409,7 +409,7 @@ func main() {
 	ScannerBlockHeight_D604 := ScannerBlockHeight
 	ScannerBlockHeight_D603 := ScannerBlockHeight
 
-	db, err = sql.Open("mysql", "root:8drRNG8RWw9FjzeJuavbY6f9@tcp(192.168.12.2:3306)/theca")
+	db, err = sql.Open("mysql", "root:8drRNG8RWw9FjzeJuavbY6f9@tcp(192.168.12.1:3306)/theca")
 	db.SetMaxOpenConns(50)
 	db.SetMaxIdleConns(30)
 
