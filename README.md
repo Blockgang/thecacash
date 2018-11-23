@@ -146,8 +146,3 @@ Add poll option 	0x6d13 	poll_txhash(30), option(184) 	Implemented
 Poll vote 	0x6d14 	poll_txhash(30), comment(184) 	Implemented 	
 Send money 	0x6d24 	message(217) 	Planned
 ```
-
-## TODO
-
-* webtorrent performance
-* webtorrent bug fix ( videos werden nicht immer angezeigt)
