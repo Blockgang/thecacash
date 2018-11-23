@@ -16,7 +16,6 @@ import (
 )
 
 var db *sql.DB
-var q Query
 var bq Bitquery
 
 func selectUnconfirmedMysql(prefix string) ([]string, error) {
