@@ -10,6 +10,9 @@ type Bitquery struct {
 type Row struct {
 	TxId           string `json:"txid"`
 	Prefix         string `json:"prefix"`
+	Link           string `json:"link"`
+	Type           string `json:"type"`
+	Title          string `json:"title"`
 	TxHash         string `json:"txhash"`
 	Sender         string `json:"sender"`
 	Message        string `json:"message"`

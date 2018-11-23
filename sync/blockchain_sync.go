@@ -18,12 +18,13 @@ import (
 var db *sql.DB
 var q Query
 var bq Bitquery
-var ScannerBlockHeight uint32
+
+// var ScannerBlockHeight uint32
 var LastScannerBlockHeight uint32
 
 func selectUnconfirmedMysql(prefix string) ([]string, error) {
 	var uc_txs []string
-	query := "SELECT txid FROM prefix_%s WHERE blockheight = 0"
+	query := "SELECT txid FROM prefix_0x%s WHERE blockheight = 0"
 	query = fmt.Sprintf(query, prefix)
 	uc_query, err := db.Query(query)
 	if err != nil {
@@ -121,64 +122,54 @@ func getUnconfirmed_E901(unconfirmedInDb []string) {
 }
 
 func getConfirmed_E901(ScannerBlockHeight uint32, unconfirmedInDb []string) uint32 {
-	query := fmt.Sprintf(ConfirmedBitdbThecaQuery, ScannerBlockHeight)
+	query := fmt.Sprintf(ThecaQuery, ScannerBlockHeight)
 	response, err := getBitDbData(query)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	err = json.Unmarshal(response, &q)
+	err = json.Unmarshal(response, &bq)
 	if err != nil {
 		fmt.Println(err)
 	}
 
-	var BlockHeight uint32
+	for i := range bq.Confirmed {
+		row := bq.Confirmed[i]
 
-	for i := range q.Confirmed {
-		Sender := q.Confirmed[i].In[0].E.A
-		TxId := q.Confirmed[i].Tx.H
-		txOuts := q.Confirmed[i].Out
-		BlockTimestamp := q.Confirmed[i].Blk.T
-		BlockHeight = q.Confirmed[i].Blk.I
-		if BlockHeight > ScannerBlockHeight {
-			ScannerBlockHeight = BlockHeight + 1
-		}
-		var Prefix string
-		var Hash string
-		var Datatype string
-		var Title string
-		for a := range txOuts {
-			if txOuts[a].B1 == "e901" {
-				Prefix = txOuts[a].B1
-				Hash = txOuts[a].S2
-				Datatype = txOuts[a].S3
-				Title = txOuts[a].S4
-			}
+		if row.BlockHeight > ScannerBlockHeight {
+			ScannerBlockHeight = row.BlockHeight + 1
 		}
 
-		if len(Prefix) != 0 && len(Hash) > 20 && len(Datatype) > 2 {
-			exists := false
-			for i := range unconfirmedInDb {
-				uc_txid := unconfirmedInDb[i]
-				if uc_txid == TxId {
-					exists = true
-				}
-			}
-
-			if exists && !isUnconfirmedInDb(TxId) {
-				err := updateMysql(Prefix, TxId, BlockTimestamp, BlockHeight)
-				if err != nil {
-					fmt.Println("CONFIRMED Theca 0xe901 UPDATE FAILED ==> ", err)
-				} else {
-					fmt.Println("CONFIRMED Theca 0xe901 UPDATE OK ==> ", TxId)
-				}
+		if isUnconfirmedInDb(row.TxId) {
+			err := updateMysql(ThecaPrefix, row.TxId, row.BlockTimestamp, row.BlockHeight)
+			if err != nil {
+				fmt.Printf("CONFIRMED %s UPDATE FAILED ==> %s\n", ThecaPrefix, err)
 			} else {
-				err := insertIntoMysql(TxId, Hash, Datatype, Title, BlockTimestamp, BlockHeight, Sender)
-				if err != nil {
-					fmt.Println("CONFIRMED Theca 0xe901 INSERT FAILED/DUPLICATED ==> ", err)
-				} else {
-					fmt.Println("CONFIRMED Theca 0xe901 INSERT OK ==>", TxId)
-				}
+				fmt.Printf("CONFIRMED %s UPDATE OK ==> %s\n", ThecaPrefix, row.TxId)
+			}
+		} else {
+			err := insertIntoMysql(row.TxId, row.Link, row.Type, row.Title, row.BlockTimestamp, row.BlockHeight, row.Sender)
+			if err != nil {
+				fmt.Printf("CONFIRMED %s INSERT FAILED/DUPLICATED ==> %s\n", ThecaPrefix, err)
+			} else {
+				fmt.Printf("CONFIRMED %s INSERT OK ==> %s\n", ThecaPrefix, row.TxId)
+			}
+		}
+	}
+
+	for i := range bq.Unconfirmed {
+		row := bq.Unconfirmed[i]
+
+		if row.BlockHeight > ScannerBlockHeight {
+			ScannerBlockHeight = row.BlockHeight + 1
+		}
+
+		if !isUnconfirmedInDb(row.TxId) {
+			err := insertIntoMysql(row.TxId, row.Link, row.Type, row.Title, row.BlockTimestamp, row.BlockHeight, row.Sender)
+			if err != nil {
+				fmt.Printf("UNCONFIRMED %s INSERT FAILED/DUPLICATED ==> %s", ThecaPrefix, err)
+			} else {
+				fmt.Printf("UNCONFIRMED %s INSERT OK ==> %s", ThecaPrefix, row.TxId)
 			}
 		}
 	}
@@ -402,14 +393,12 @@ func main() {
 	currentBlockheight := getBlockheight()
 	fmt.Println("Currentblockheight: ", currentBlockheight)
 
-	fmt.Println(MemoCommentsQuery)
-
-	ScannerBlockHeight = 550255
 	ScannerBlockHeight_E901 := ScannerBlockHeight
 	ScannerBlockHeight_D604 := ScannerBlockHeight
 	ScannerBlockHeight_D603 := ScannerBlockHeight
 
-	db, err = sql.Open("mysql", "root:8drRNG8RWw9FjzeJuavbY6f9@tcp(192.168.12.1:3306)/theca")
+	// db, err = sql.Open("mysql", "root:8drRNG8RWw9FjzeJuavbY6f9@tcp(192.168.12.1:3306)/theca")
+	db, err = sql.Open("mysql", "root:my-secret-pw@tcp(127.0.0.1:3306)/theca")
 	db.SetMaxOpenConns(50)
 	db.SetMaxIdleConns(30)
 
@@ -422,15 +411,15 @@ func main() {
 
 	loop := true
 	for loop {
-		unconfirmedInDb_E901, err := selectUnconfirmedMysql("0xe901")
+		unconfirmedInDb_E901, err := selectUnconfirmedMysql(ThecaPrefix)
 		if err != nil {
 			fmt.Println(err)
 		}
-		unconfirmedInDb_6D04, err := selectUnconfirmedMysql("0x6d04")
+		unconfirmedInDb_6D04, err := selectUnconfirmedMysql(MemoLikePrefix)
 		if err != nil {
 			fmt.Println(err)
 		}
-		unconfirmedInDb_6D03, err := selectUnconfirmedMysql("0x6d03")
+		unconfirmedInDb_6D03, err := selectUnconfirmedMysql(MemoCommentPrefix)
 		if err != nil {
 			fmt.Println(err)
 		}
