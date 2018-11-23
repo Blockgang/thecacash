@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -285,8 +286,7 @@ func main() {
 	ScannerBlockHeight_D604 := ScannerBlockHeight
 	ScannerBlockHeight_D603 := ScannerBlockHeight
 
-	// db, err = sql.Open("mysql", "root:8drRNG8RWw9FjzeJuavbY6f9@tcp(192.168.12.1:3306)/theca")
-	db, err = sql.Open("mysql", "root:my-secret-pw@tcp(127.0.0.1:3306)/theca")
+	db, err = sql.Open("mysql", os.Getenv("DATABASE_USERNAME")+":"+os.Getenv("DATABASE_PASSWORD")+"@tcp("+os.Getenv("DATABASE_HOSTNAME")+os.Getenv("DATABASE_PORT")+")/"+os.Getenv("DATABASE_NAME"))
 	if err != nil {
 		log.Fatal(err)
 	}
