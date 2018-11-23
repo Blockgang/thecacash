@@ -1,4 +1,4 @@
-CREATE DATABASE `theca`;
+#CREATE DATABASE `theca`;
 USE theca;
 
 -- Activate EVENT SCHEDULER
@@ -18,7 +18,6 @@ CREATE TABLE `event_scheduler` (
 );
 
 
--------------- THECA --------------
 -- Theca Prefix
 DROP TABLE IF EXISTS prefix_0xe901;
 CREATE TABLE `prefix_0xe901` (
@@ -44,7 +43,6 @@ CREATE TABLE `theca`.`users` (
   `timestamp` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`username`));
 
--------------- MEMO --------------
 -- Memo Set Name
 DROP TABLE IF EXISTS prefix_0x6d01;
 CREATE TABLE `prefix_0x6d01` (
