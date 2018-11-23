@@ -95,14 +95,14 @@ func getConfirmed_E901(ScannerBlockHeight uint32, unconfirmedInDb []string) uint
 		if isUnconfirmedInDb(row.TxId) {
 			err := updateMysql(ThecaPrefix, row.TxId, row.BlockTimestamp, row.BlockHeight)
 			if err != nil {
-				fmt.Printf("CONFIRMED %s UPDATE FAILED ==> %s\n", ThecaPrefix, err)
+				fmt.Printf("CONFIRMED %s UPDATE FAILED ==> %s\ndata:%v\n", ThecaPrefix, err, row)
 			} else {
 				fmt.Printf("CONFIRMED %s UPDATE OK ==> %s\n", ThecaPrefix, row.TxId)
 			}
 		} else {
 			err := insertIntoMysql(row.TxId, row.Link, row.Type, row.Title, row.BlockTimestamp, row.BlockHeight, row.Sender)
 			if err != nil {
-				fmt.Printf("CONFIRMED %s INSERT FAILED/DUPLICATED ==> %s\n", ThecaPrefix, err)
+				fmt.Printf("CONFIRMED %s INSERT FAILED/DUPLICATED ==> %s\ndata:%v\n", ThecaPrefix, err, row)
 			} else {
 				fmt.Printf("CONFIRMED %s INSERT OK ==> %s\n", ThecaPrefix, row.TxId)
 			}
@@ -119,7 +119,7 @@ func getConfirmed_E901(ScannerBlockHeight uint32, unconfirmedInDb []string) uint
 		if !isUnconfirmedInDb(row.TxId) {
 			err := insertIntoMysql(row.TxId, row.Link, row.Type, row.Title, row.BlockTimestamp, row.BlockHeight, row.Sender)
 			if err != nil {
-				fmt.Printf("UNCONFIRMED %s INSERT FAILED/DUPLICATED ==> %s\n", ThecaPrefix, err)
+				fmt.Printf("UNCONFIRMED %s INSERT FAILED/DUPLICATED ==> %s\ndata:%v\n", ThecaPrefix, err, row)
 			} else {
 				fmt.Printf("UNCONFIRMED %s INSERT OK ==> %s\n", ThecaPrefix, row.TxId)
 			}
@@ -148,14 +148,14 @@ func getMemoLikes(ScannerBlockHeight uint32, unconfirmedInDb []string) uint32 {
 		if isUnconfirmedInDb(row.TxId) {
 			err := updateMysql(MemoLikePrefix, row.TxId, row.BlockTimestamp, row.BlockHeight)
 			if err != nil {
-				fmt.Printf("CONFIRMED %s UPDATE FAILED ==> %s\n", MemoLikePrefix, err)
+				fmt.Printf("CONFIRMED %s UPDATE FAILED ==> %s\ndata:%v\n", MemoLikePrefix, err, row)
 			} else {
 				fmt.Printf("CONFIRMED %s UPDATE OK ==> %s\n", MemoLikePrefix, row.TxId)
 			}
 		} else {
 			err := insertMemoLikeIntoMysql(&row.TxId, &row.TxHash, &row.Sender, &row.BlockTimestamp, &row.BlockHeight)
 			if err != nil {
-				fmt.Printf("CONFIRMED %s INSERT FAILED/DUPLICATED ==> %s\n", MemoLikePrefix, err)
+				fmt.Printf("CONFIRMED %s INSERT FAILED/DUPLICATED ==> %s\ndata:%v\n", MemoLikePrefix, err, row)
 			} else {
 				fmt.Printf("CONFIRMED %s INSERT OK ==> %s\n", MemoLikePrefix, row.TxId)
 			}
@@ -168,7 +168,7 @@ func getMemoLikes(ScannerBlockHeight uint32, unconfirmedInDb []string) uint32 {
 		if !isUnconfirmedInDb(row.TxId) {
 			err := insertMemoLikeIntoMysql(&row.TxId, &row.TxHash, &row.Sender, &row.BlockTimestamp, &row.BlockHeight)
 			if err != nil {
-				fmt.Printf("UNCONFIRMED %s INSERT FAILED/DUPLICATED ==> %s\n", MemoLikePrefix, err)
+				fmt.Printf("UNCONFIRMED %s INSERT FAILED/DUPLICATED ==> %s\ndata:%v\n", MemoLikePrefix, err, row)
 			} else {
 				fmt.Printf("UNCONFIRMED %s INSERT OK ==> %s\n", MemoLikePrefix, row.TxId)
 			}
@@ -195,14 +195,14 @@ func getMemoComments(ScannerBlockHeight uint32, unconfirmedInDb []string) uint32
 		if isUnconfirmedInDb(row.TxId) {
 			err := updateMysql(MemoCommentPrefix, row.TxId, row.BlockTimestamp, row.BlockHeight)
 			if err != nil {
-				fmt.Printf("CONFIRMED %s UPDATE FAILED ==> %s\n", MemoCommentPrefix, err)
+				fmt.Printf("CONFIRMED %s UPDATE FAILED ==> %s\ndata:%v\n", MemoCommentPrefix, err, row)
 			} else {
 				fmt.Printf("CONFIRMED %s UPDATE OK ==> %s answers %s\n", MemoCommentPrefix, row.TxId, row.TxHash)
 			}
 		} else {
 			err := insertMemoCommentIntoMysql(&row.TxId, &row.TxHash, &row.Message, &row.Sender, &row.BlockTimestamp, &row.BlockHeight)
 			if err != nil {
-				fmt.Printf("CONFIRMED %s INSERT FAILED/DUPLICATED ==> %s\n", MemoCommentPrefix, err)
+				fmt.Printf("CONFIRMED %s INSERT FAILED/DUPLICATED ==> %s\ndata:%v\n", MemoCommentPrefix, err, row)
 			} else {
 				fmt.Printf("CONFIRMED %s INSERT OK ==> %s answers %s\n", MemoCommentPrefix, row.TxId, row.TxHash)
 			}
@@ -216,7 +216,7 @@ func getMemoComments(ScannerBlockHeight uint32, unconfirmedInDb []string) uint32
 		if !isUnconfirmedInDb(row.TxId) {
 			err := insertMemoCommentIntoMysql(&row.TxId, &row.TxHash, &row.Message, &row.Sender, &row.BlockTimestamp, &row.BlockHeight)
 			if err != nil {
-				fmt.Printf("UNCONFIRMED %s INSERT FAILED/DUPLICATED ==> %s\n", MemoCommentPrefix, err)
+				fmt.Printf("UNCONFIRMED %s INSERT FAILED/DUPLICATED ==> %s\ndata:%v\n", MemoCommentPrefix, err, row)
 			} else {
 				fmt.Printf("UNCONFIRMED %s INSERT OK ==> %s answers %s\n", MemoCommentPrefix, row.TxId, row.TxHash)
 			}
@@ -314,7 +314,7 @@ func main() {
 		ScannerBlockHeight_E901 = getConfirmed_E901(ScannerBlockHeight_E901, unconfirmedInDb_E901)
 
 		fmt.Printf("MEMO %s ScannerHeight: > %d\n", MemoCommentPrefix, ScannerBlockHeight_D603)
-		getMemoComments(ScannerBlockHeight_D603, unconfirmedInDb_6D03)
+		ScannerBlockHeight_D603 = getMemoComments(ScannerBlockHeight_D603, unconfirmedInDb_6D03)
 
 		fmt.Printf("MEMO %s ScannerHeight: > %d\n", MemoLikePrefix, ScannerBlockHeight_D604)
 		ScannerBlockHeight_D604 = getMemoLikes(ScannerBlockHeight_D604, unconfirmedInDb_6D04)
