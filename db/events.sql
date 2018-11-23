@@ -1,4 +1,5 @@
-USE theca;
+#USE theca;
+
 -- memoLikeCounter Events
 DELIMITER |
 CREATE EVENT memoLikeCounter
