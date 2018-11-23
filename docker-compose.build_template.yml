@@ -18,8 +18,11 @@ services:
             - NODE_ENV=${NODE_ENV}
             - SERVER_PROTOCOL=${SERVER_PROTOCOL}
             - SERVER_PORT=${SERVER_PORT}
-        networks:
-            - ${DOCKER_NETWORK_NAME}
+
 networks:
-  thecanet:
-    external: true
+  default:
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.168.12.0/24
+
