@@ -49,11 +49,12 @@ func updateMysql(prefix string, TxId string, blocktimestamp uint32, blockheight 
 	return err
 }
 
-func insertIntoMysql(TxId string, hash string, data_type string, title string, blocktimestamp uint32, blockheight uint32, sender string) error {
+func insertIntoMysql(TxId string, link string, data_type string, title string, blocktimestamp uint32, blockheight uint32, sender string) error {
 	sql_query := "INSERT INTO prefix_0xe901 (txid,hash,type,title,blocktimestamp,blockheight,sender) VALUES(?,?,?,?,?,?,?)"
+	fmt.Println(TxId, link, data_type, title, blocktimestamp, blockheight, sender)
 	insert, err := db.Prepare(sql_query)
 	defer insert.Close()
-	_, err = insert.Exec(TxId, hash, data_type, title, blocktimestamp, blockheight, sender)
+	_, err = insert.Exec(TxId, link, data_type, title, blocktimestamp, blockheight, sender)
 	return err
 }
 
