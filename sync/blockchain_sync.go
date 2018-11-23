@@ -19,9 +19,6 @@ var db *sql.DB
 var q Query
 var bq Bitquery
 
-// var ScannerBlockHeight uint32
-var LastScannerBlockHeight uint32
-
 func selectUnconfirmedMysql(prefix string) ([]string, error) {
 	var uc_txs []string
 	query := "SELECT txid FROM prefix_0x%s WHERE blockheight = 0"
@@ -122,9 +119,9 @@ func getConfirmed_E901(ScannerBlockHeight uint32, unconfirmedInDb []string) uint
 		if !isUnconfirmedInDb(row.TxId) {
 			err := insertIntoMysql(row.TxId, row.Link, row.Type, row.Title, row.BlockTimestamp, row.BlockHeight, row.Sender)
 			if err != nil {
-				fmt.Printf("UNCONFIRMED %s INSERT FAILED/DUPLICATED ==> %s", ThecaPrefix, err)
+				fmt.Printf("UNCONFIRMED %s INSERT FAILED/DUPLICATED ==> %s\n", ThecaPrefix, err)
 			} else {
-				fmt.Printf("UNCONFIRMED %s INSERT OK ==> %s", ThecaPrefix, row.TxId)
+				fmt.Printf("UNCONFIRMED %s INSERT OK ==> %s\n", ThecaPrefix, row.TxId)
 			}
 		}
 	}
@@ -168,16 +165,12 @@ func getMemoLikes(ScannerBlockHeight uint32, unconfirmedInDb []string) uint32 {
 	for i := range bq.Unconfirmed {
 		row := bq.Unconfirmed[i]
 
-		if row.BlockHeight > ScannerBlockHeight {
-			ScannerBlockHeight = row.BlockHeight + 1
-		}
-
 		if !isUnconfirmedInDb(row.TxId) {
 			err := insertMemoLikeIntoMysql(&row.TxId, &row.TxHash, &row.Sender, &row.BlockTimestamp, &row.BlockHeight)
 			if err != nil {
-				fmt.Printf("UNCONFIRMED %s INSERT FAILED/DUPLICATED ==> %s", MemoLikePrefix, err)
+				fmt.Printf("UNCONFIRMED %s INSERT FAILED/DUPLICATED ==> %s\n", MemoLikePrefix, err)
 			} else {
-				fmt.Printf("UNCONFIRMED %s INSERT OK ==> %s", MemoLikePrefix, row.TxId)
+				fmt.Printf("UNCONFIRMED %s INSERT OK ==> %s\n", MemoLikePrefix, row.TxId)
 			}
 		}
 	}
@@ -287,7 +280,7 @@ func main() {
 	var err error
 
 	currentBlockheight := getBlockheight()
-	fmt.Println("Currentblockheight: ", currentBlockheight)
+	fmt.Printf("Currentblockheight: %d\n", currentBlockheight)
 
 	ScannerBlockHeight_E901 := ScannerBlockHeight
 	ScannerBlockHeight_D604 := ScannerBlockHeight
@@ -295,15 +288,12 @@ func main() {
 
 	// db, err = sql.Open("mysql", "root:8drRNG8RWw9FjzeJuavbY6f9@tcp(192.168.12.1:3306)/theca")
 	db, err = sql.Open("mysql", "root:my-secret-pw@tcp(127.0.0.1:3306)/theca")
-	db.SetMaxOpenConns(50)
-	db.SetMaxIdleConns(30)
-
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer db.Close()
 
-	fmt.Println("Start ScannerBlockHeight: >", ScannerBlockHeight)
+	fmt.Printf("Start ScannerBlockHeight: > %d\n", ScannerBlockHeight)
 
 	loop := true
 	for loop {
@@ -320,13 +310,13 @@ func main() {
 			fmt.Println(err)
 		}
 
-		fmt.Println("THECA 0xE901 Confirmed ScannerHeight: > ", ScannerBlockHeight_E901)
+		fmt.Printf("THECA %s Confirmed ScannerHeight: > %d\n", ThecaPrefix, ScannerBlockHeight_E901)
 		ScannerBlockHeight_E901 = getConfirmed_E901(ScannerBlockHeight_E901, unconfirmedInDb_E901)
 
-		fmt.Println("MEMO 0xD603 ScannerHeight: > ", ScannerBlockHeight_D603)
+		fmt.Printf("MEMO %s ScannerHeight: > %d\n", MemoCommentPrefix, ScannerBlockHeight_D603)
 		getMemoComments(ScannerBlockHeight_D603, unconfirmedInDb_6D03)
 
-		fmt.Println("MEMO Confirmed 0xD604 ScannerHeight: > ", ScannerBlockHeight_D604)
+		fmt.Printf("MEMO %s ScannerHeight: > %d\n", MemoLikePrefix, ScannerBlockHeight_D604)
 		ScannerBlockHeight_D604 = getMemoLikes(ScannerBlockHeight_D604, unconfirmedInDb_6D04)
 
 		time.Sleep(10 * time.Second)

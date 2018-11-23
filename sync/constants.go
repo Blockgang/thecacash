@@ -1,6 +1,7 @@
 package main
 
 const (
+
 	// Blockheight to start sync
 	ScannerBlockHeight = uint32(550255)
 
