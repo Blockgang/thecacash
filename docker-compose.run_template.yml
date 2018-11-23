@@ -11,13 +11,7 @@ services:
       - MYSQL_USER=${DATABASE_USERNAME}
       - MYSQL_ROOT_PASSWORD=/run/secrets/mysql_root_password
       - MYSQL_ROOT_HOST=${MYSQL_ROOT_HOST}
-        #MYSQL_DATABASE: theca
-        #MYSQL_PASSWORD: 8drRNG8RWw9FjzeJuavbY6f9 
-      #MYSQL_ROOT_HOST: %
-      #MYSQL_ROOT_PASSWORD: "fucker"
       #command: mysqld --event_scheduler="ON"
-    ports:
-      - "3306:3306"
     secrets:
       - mysql_root_password
 
@@ -78,5 +72,3 @@ networks:
       driver: default
       config:
         - subnet: 192.168.12.0/24
-      #      thecanet:
-      #external: true
