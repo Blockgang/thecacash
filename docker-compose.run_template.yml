@@ -6,14 +6,12 @@ services:
     image: theca.cash/theca-mysql
     container_name: theca-mysql
     volumes:
-      - ${DATABASE_PATH}:/var/lib/mysql        
+      - ${DATABASE_PATH}:/var/lib/mysql
     environment:
-      TZ: ${TZ}    
-      MYSQL_DATABASE: ${DATABASE_NAME}     
+      TZ: ${TZ}
+      MYSQL_DATABASE: ${DATABASE_NAME}
       MYSQL_ROOT_PASSWORD: /run/secrets/mysql_root_password
-    networks:
-      - ${DOCKER_NETWORK_NAME}      
-    command: mysqld --event_scheduler="ON"
+    #command: mysqld --event_scheduler="ON"
     secrets:
       - mysql_root_password
 
@@ -21,16 +19,13 @@ services:
     build: ./memcache
     image: theca.cash/theca-cache
     container_name: theca-cache
-    networks:
-      - ${DOCKER_NETWORK_NAME}
+
   sync:
     build: ./sync
     image: theca.cash/theca-sync
     container_name: theca-sync
     depends_on:
-      - db 
-    networks:
-      - ${DOCKER_NETWORK_NAME}        
+      - db
     restart: always
 
   web:
@@ -47,11 +42,9 @@ services:
      - DATABASE_HOSTNAME=${DATABASE_HOSTNAME}
      - DATABASE_PORT=${DATABASE_PORT}
      - DATABASE_USERNAME=${DATABASE_USERNAME}
-     - DATABASE_PASSWORD=DOCKERSECRET:database_password    
+     - DATABASE_PASSWORD=DOCKERSECRET:database_password
     ports:
       - "8080:8000"
-    networks:
-      - ${DOCKER_NETWORK_NAME}
     secrets:
       - database_password
   run-theca-client:
@@ -65,14 +58,18 @@ services:
       - INTERNAL_WEBSERVER=${WEBSERVER_HOSTNAME}
       - INTERNAL_PORT_WEBSERVER=${INTERNAL_PORT_WEBSERVER}
       - INTERNAL_PORT_RUN_THECA_CLIENT=${INTERNAL_PORT_RUN_THECA_CLIENT}
-    networks:
-      - ${DOCKER_NETWORK_NAME}
-        
+
 secrets:
   database_password:
-    file: secrets/database_password.txt      
+    file: secrets/database_password.txt
   mysql_root_password:
     file: secrets/mysql_root_password.txt
+
 networks:
-  thecanet:
-    external: true
+  default:
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.168.12.0/24
+      #      thecanet:
+      #external: true
