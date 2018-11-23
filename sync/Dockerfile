@@ -1,7 +1,8 @@
 FROM golang:latest as builder
 MAINTAINER jengi77
-RUN apt update && apt install -y curl && \
-    mkdir /build
+
+RUN apt update && apt install -y curl
+RUN mkdir /build
 ADD . /build/
 WORKDIR /build
 
@@ -11,6 +12,4 @@ RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -ldflags '-extldflag
 FROM scratch
 COPY --from=builder /build/syncer /app/
 WORKDIR /app
-EXPOSE 11211 
 CMD ["./syncer"]
-
