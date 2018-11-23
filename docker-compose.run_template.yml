@@ -5,13 +5,19 @@ services:
     build: ./db
     image: theca.cash/theca-mysql
     container_name: theca-mysql
-    #volumes:
-    #  - ${DATABASE_PATH}:/var/lib/mysql
     environment:
-      TZ: ${TZ}
-      MYSQL_DATABASE: ${DATABASE_NAME}
-      MYSQL_ROOT_PASSWORD: /run/secrets/mysql_root_password
-    command: mysqld --event_scheduler="ON"
+      - TZ=${TZ}
+      - MYSQL_DATABASE=${DATABASE_NAME}
+      - MYSQL_USER=${DATABASE_USERNAME}
+      - MYSQL_ROOT_PASSWORD=/run/secrets/mysql_root_password
+      - MYSQL_ROOT_HOST=${MYSQL_ROOT_HOST}
+        #MYSQL_DATABASE: theca
+        #MYSQL_PASSWORD: 8drRNG8RWw9FjzeJuavbY6f9 
+      #MYSQL_ROOT_HOST: %
+      #MYSQL_ROOT_PASSWORD: "fucker"
+      #command: mysqld --event_scheduler="ON"
+    ports:
+      - "3306:3306"
     secrets:
       - mysql_root_password
 
