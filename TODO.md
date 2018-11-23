@@ -11,8 +11,8 @@
 ## Go Code
 * variablenNamenSoSchreiben
 * KonstantenSoSchreiben go akzeptiert DIESE_KONSTANTEN_NAMEN nicht
-* eigenes file für Konstanten
-* eigenes file für structs
+* ✅eigenes file für Konstanten
+* ✅eigenes file für structs
 * funktionen zusammenfassen/doppeltes vereinfachen
 * pointer anstatt copy
 * parse/repalce emoji character (syncer)
