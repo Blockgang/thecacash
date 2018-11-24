@@ -26,6 +26,11 @@ services:
     container_name: theca-sync
     depends_on:
       - db
+    environment:
+     - TZ=${TZ}
+     - DATABASE_NAME=${DATABASE_NAME}
+     - DATABASE_HOSTNAME=${DATABASE_HOSTNAME}
+     - DATABASE_PORT=${DATABASE_PORT}
     restart: always
 
   web:
