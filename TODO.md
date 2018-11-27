@@ -10,7 +10,10 @@
 ## Docker
 * secure password in syncer / web docker
 * add access to mysql docker with theca-user and password
-** replace then with root in syncer / web docker
+* replace then with root in syncer / web docker
+
+## mysql
+* scheduler ON on startup
 
 ## Go Code
 * variablenNamenSoSchreiben
