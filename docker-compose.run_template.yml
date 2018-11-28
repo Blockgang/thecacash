@@ -46,12 +46,12 @@ services:
      - DATABASE_NAME=${DATABASE_NAME}
      - DATABASE_HOSTNAME=${DATABASE_HOSTNAME}
      - DATABASE_PORT=${DATABASE_PORT}
-     - DATABASE_USERNAME=${DATABASE_USERNAME}
-     - DATABASE_PASSWORD=DOCKERSECRET:database_password
+     #- DATABASE_USERNAME=${DATABASE_USERNAME}
+     #- DATABASE_PASSWORD=DOCKERSECRET:database_password
     ports:
       - "8080:8000"
-    secrets:
-      - database_password
+    #secrets:
+    #  - database_password
 
   run-theca-client:
     build: ./run-client
