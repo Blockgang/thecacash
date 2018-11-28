@@ -51,13 +51,13 @@ var db *sql.DB
 var mc *memcache.Client
 
 func main() {
-        fmt.Println(os.Environ())
+        //fmt.Println(os.Environ())
 	//MEMCACHED
 	mc = memcache.New(os.Getenv("MEMCACHE_HOSTNAME") + ":" + os.Getenv("MEMCACHE_PORT"))
 
 	//MYSQL
 	var err error
-	db, err = sql.Open("mysql", os.Getenv("DATABASE_USERNAME") + ":" + os.Getenv("DATABASE_PASSWORD") + "@tcp(" + os.Getenv("DATABASE_HOSTNAME") + os.Getenv("DATABASE_PORT") + ")/"+ os.Getenv("DATABASE_NAME"))
+        db, err = sql.Open("mysql", "root:8drRNG8RWw9FjzeJuavbY6f9@tcp("+os.Getenv("DATABASE_HOSTNAME")+":"+os.Getenv("DATABASE_PORT")+")/"+os.Getenv("DATABASE_NAME"))
 	if err != nil {
 		log.Fatal(err)
 	}
