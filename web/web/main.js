@@ -235,7 +235,7 @@ function login(){
   var passwordHash = CryptoJS.SHA256(password).toString();
 
   var xhr = new XMLHttpRequest();
-  var url = "http://192.168.12.5:8000/api/login";
+  var url = "http://localhost:8080/api/login";
   xhr.open("POST", url, true);
   xhr.setRequestHeader("Content-Type", "application/json");
   xhr.onreadystatechange = function () {
@@ -278,7 +278,7 @@ function signup(){
   var encryptedPrivatekey = CryptoJS.AES.encrypt(privatekey,password).toString();
 
   var xhr = new XMLHttpRequest();
-  var url = "http://192.168.12.5:8000/api/signup";
+  var url = "http://localhost:8080/api/signup";
   xhr.open("POST", url, true);
   xhr.setRequestHeader("Content-Type", "application/json");
   xhr.onreadystatechange = function () {
@@ -296,7 +296,7 @@ function openComments(txid){
   console.log(txid);
   var request = new XMLHttpRequest();
 
-  request.open('GET', 'http://192.168.12.5:8000/api/comments/'+txid, true);
+  request.open('GET', 'http://localhost:8080/api/comments/'+txid, true);
   request.onload = function () {
     var modal = document.getElementById("commentsModal");
     var span = document.getElementsByClassName("close")[0];
