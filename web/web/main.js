@@ -140,7 +140,7 @@ function play(hash,title,sender){
 function getFromAPI() {
   // var search_string = document.getElementById('search').value
 
-  var url = "http://" + env('WEBSERVER_HOSTNAME') +":8000/api/tx/positions";
+  var url = "http://localhost:8080/api/tx/positions";
   console.log(url)
   var header = {
     headers: { key: "qz6qzfpttw44eqzqz8t2k26qxswhff79ng40pp2m44" }
