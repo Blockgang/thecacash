@@ -7,7 +7,6 @@ stackBuildFile=docker-compose.stack_build.yml
 stackRunFile=docker-compose.stack_run.yml
 
 options=(
-    "create_docker_network" \
     "create_docker_secrets" \
     "build" \
     "build_hard" \
@@ -44,12 +43,6 @@ function evalParams () {
     done
 }
 
-function createDockerNetwork () {
-    source ${ENV_FILE}
-    docker network rm ${DOCKER_NETWORK_NAME} 2> /dev/null
-    docker network create --driver=bridge --attachable ${DOCKER_NETWORK_NAME} --gateway ${NETWORK_GATEWAY} --subnet ${SUBNET}
-}
-
 function buildContainer () {
     evalParams $@
     docker-compose -f ${composeFile} build ${buildHardOptions} ${containers}
@@ -79,10 +72,6 @@ function showLogs () {
 
 function doit {
     case "$1" in
-        "create_docker_network")
-            echo "create theca.cash network"
-            createDockerNetwork
-            ;;
         "create_docker_secrets")
             echo "create_docker_secrets"
             ./create_docker_secrets.sh
