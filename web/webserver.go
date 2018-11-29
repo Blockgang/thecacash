@@ -1,7 +1,6 @@
 package main
 
 import (
-        "os"
 	"bytes"
 	"crypto/sha256"
 	"database/sql"
@@ -11,6 +10,7 @@ import (
 	"log"
 	"math"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/bradfitz/gomemcache/memcache"
@@ -22,42 +22,17 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
-type Theca struct {
-	Txid           string
-	Link           string
-	DataType       string
-	Title          string
-	BlockTimestamp int64
-	BlockHeight    uint32
-	Sender         string
-	Likes          uint32
-	Comments       uint32
-	Timestamp      int64
-	Score          float64
-}
-
-type Comment struct {
-	Txid           string
-	TxHash         string
-	Message        string
-	BlockTimestamp int64
-	BlockHeight    uint32
-	Sender         string
-	Timestamp      int64
-	Score          float64
-}
-
 var db *sql.DB
 var mc *memcache.Client
 
 func main() {
-        //fmt.Println(os.Environ())
+	//fmt.Println(os.Environ())
 	//MEMCACHED
 	mc = memcache.New(os.Getenv("MEMCACHE_HOSTNAME") + ":" + os.Getenv("MEMCACHE_PORT"))
 
 	//MYSQL
 	var err error
-        db, err = sql.Open("mysql", "root:8drRNG8RWw9FjzeJuavbY6f9@tcp("+os.Getenv("DATABASE_HOSTNAME")+":"+os.Getenv("DATABASE_PORT")+")/"+os.Getenv("DATABASE_NAME"))
+	db, err = sql.Open("mysql", "root:8drRNG8RWw9FjzeJuavbY6f9@tcp("+os.Getenv("DATABASE_HOSTNAME")+":"+os.Getenv("DATABASE_PORT")+")/"+os.Getenv("DATABASE_NAME"))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -83,18 +58,6 @@ func main() {
 
 	http.ListenAndServe(":8000", router)
 	log.Println("Listening...")
-}
-
-type SignupPost struct {
-	Username     string
-	PasswordHash string
-	EncryptedPk  string
-}
-
-type SignupResponse struct {
-	Username    string
-	EncryptedPk string
-	Signup      bool
 }
 
 func postSignup(w http.ResponseWriter, r *http.Request) {
@@ -143,17 +106,6 @@ func insertLoginIntoMysql(userName string, passwordHash string, encryptedPk stri
 	defer insert.Close()
 	_, err = insert.Query(userName, passwordHash, encryptedPk)
 	return err
-}
-
-type LoginPost struct {
-	Username     string
-	PasswordHash string
-}
-
-type LoginResponse struct {
-	Username    string
-	EncryptedPk string
-	Login       bool
 }
 
 func postLogin(w http.ResponseWriter, r *http.Request) {
@@ -246,6 +198,13 @@ func getComments(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Fatal(err)
 	}
+	for comment := range comments {
+		if comments[comment].BlockTimestamp == 0 {
+			comments[comment].BlockTimestamp = comments[comment].Timestamp
+		}
+		comments[comment].Score = calculateScore(comments[comment].Likes, comments[comment].BlockTimestamp)
+	}
+	sortutil.DescByField(comments, "Score")
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(comments)
 }
