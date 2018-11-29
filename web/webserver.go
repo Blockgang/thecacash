@@ -24,7 +24,6 @@ var db *sql.DB
 var mc *memcache.Client
 
 func main() {
-	//fmt.Println(os.Environ())
 	//MEMCACHED
 	mc = memcache.New(os.Getenv("MEMCACHE_HOSTNAME") + ":" + os.Getenv("MEMCACHE_PORT"))
 
