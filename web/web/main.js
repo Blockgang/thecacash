@@ -37,9 +37,10 @@ function send(){ //217 chars
 }
 
 
-function reply(txid,comment){ //comment 184chars
-  // var pkey = document.getElementById('pkey').value
-  var pkey = localStorage.getItem('pk');
+function reply(txid){ //comment 184chars
+  var comment = document.getElementById(txid + '_comment').value;
+  var pkey = document.getElementById('pkey').value;
+  // var pkey = localStorage.getItem('pk');
   var commentCounter = document.getElementById("comment_counter_"+txid)
   var commentImg = document.getElementById("comment_"+txid)
   var prefix = "0x6d03" // memo reply
@@ -327,9 +328,9 @@ function openComments(txid){
           li.innerHTML =  "<a class='result-tx-link' data-toggle='tooltip' title='Tx-Data: " + JSON.stringify(tx) + "' target='_blank' href='https://blockchair.com/bitcoin-cash/transaction/"+ tx.Txid +"'><span class='glyphicon glyphicon-th'></span></a> "+tx.Message;
           ul.appendChild(li)
         });
-        title.innerHTML = "Comments"
+        title.innerHTML = "Comments<br><input size='20' id='"+txid+"_comment'></input><button onclick='reply(`" + txid + "`)'>Send</button>"
       } else {
-        title.innerHTML = "No Comments"
+        title.innerHTML = "No Comments<br><input size='20' id='"+txid+"_comment'></input><button onclick='reply(`" + txid + "`)'>Send</button>"
       }
 
       content.appendChild(title)
@@ -363,14 +364,12 @@ function list_tx_results(tx,confirmed){
     likeImage = "heart_0.png"
   }
 
-  var testcomment = "test comment, bla bla bla!\n dies ist ein test :)"
+  // var testcomment = "test comment, bla bla bla!\n dies ist ein test :)"
   if (tx.Comments > 0){
     commentImage = "comment_1.png"
-    // td_comments.innerHTML = "<a title='comment' onclick='reply(`"+ tx.Txid +"`,`"+ testcomment +"`)'><img class='comment' id='comment_"+ tx.Txid +"' height='20' src='icons/"+ commentImage +"'><span class='commentcounter' id='comment_counter_"+ tx.Txid +"'>"+ tx.Comments +"</span></a>"
     td_comments.innerHTML = "<button id='openComments_"+tx.Txid +"' onclick='openComments(`"+ tx.Txid +"`)'><img class='comment' id='comment_"+ tx.Txid +"' height='20' src='icons/"+ commentImage +"'><span class='commentcounter' id='comment_counter_"+ tx.Txid +"'>"+ tx.Comments +"</span></button>"
   }else{
     commentImage = "comment_0.png"
-    // td_comments.innerHTML = "<a title='comment' onclick='reply(`"+ tx.Txid +"`,`"+ testcomment +"`)'><img class='comment' id='comment_"+ tx.Txid +"' height='20' src='icons/"+ commentImage +"'><span class='commentcounter' id='comment_counter_"+ tx.Txid +"'>"+ tx.Comments +"</span></a>"
     td_comments.innerHTML = "<button id='openComments_"+tx.Txid +"' onclick='openComments(`"+ tx.Txid +"`)'><img class='comment' id='comment_"+ tx.Txid +"' height='20' src='icons/"+ commentImage +"'><span class='commentcounter' id='comment_counter_"+ tx.Txid +"'>"+ tx.Comments +"</span></button>"
   }
 
