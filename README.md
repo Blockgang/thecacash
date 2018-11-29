@@ -54,7 +54,7 @@ http://localhost:8080/api/tx/positions
 All comments/replys related to txid
 ```
 http://localhost:8080/api/comments/{txid}
-
+```
 ### POST ###
 #### SIGNUP ####
 POST-Request:
