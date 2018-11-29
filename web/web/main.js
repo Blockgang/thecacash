@@ -39,8 +39,8 @@ function send(){ //217 chars
 
 function reply(txid){ //comment 184chars
   var comment = document.getElementById(txid + '_comment').value;
-  var pkey = document.getElementById('pkey').value;
-  // var pkey = localStorage.getItem('pk');
+  // var pkey = document.getElementById('pkey').value;
+  var pkey = localStorage.getItem('pk');
   var commentCounter = document.getElementById("comment_counter_"+txid)
   var commentImg = document.getElementById("comment_"+txid)
   var prefix = "0x6d03" // memo reply
@@ -61,7 +61,7 @@ function reply(txid){ //comment 184chars
   })
 }
 
-function like(txid,counter){
+function like(txid){
   // var pkey = document.getElementById('pkey').value
   var pkey = localStorage.getItem('pk');
   var likeCounter = document.getElementById("like_counter_"+txid)
