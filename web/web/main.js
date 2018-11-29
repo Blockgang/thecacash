@@ -299,8 +299,8 @@ function openComments(txid){
   request.open('GET', 'http://localhost:8080/api/comments/'+txid, true);
   request.onload = function () {
     var modal = document.getElementById("commentsModal");
-    var span = document.getElementsByClassName("close")[0];
-    var content = document.getElementsByClassName("modal-content")[0];
+    var span = modal.getElementsByClassName("close")[0];
+    var content = modal.getElementsByClassName("modal-content")[0];
     var contentReset = "<span class='close'>&times;</span>";
     var title = document.createElement('h1');
 

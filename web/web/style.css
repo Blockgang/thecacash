@@ -34,6 +34,7 @@ input[type=text], input[type=password] {
     background-color: #f44336;
 }
 
+
 /* Center the image and position the close button */
 .imgcontainer {
     text-align: center;
@@ -72,6 +73,7 @@ span.psw {
     border: 1px solid #888;
     width: 80%; /* Could be more or less, depending on screen size */
 }
+
 
 /* The Close Button (x) */
 .close {
