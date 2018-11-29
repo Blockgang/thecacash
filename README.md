@@ -44,19 +44,22 @@ Choose Option 11 to exit from admin_tool
 ### GET ###
 Get Transaction Infos
 ```
-http://192.168.12.5:8000/api/tx/{txid}
-http://192.168.12.5:8000/api/tx/569be470b326e50afbbc739531ea428b5c6977fd900091e3a8faeaf90b85140b
+http://localhost:8080/api/tx/{txid}
+http://localhost:8080/api/tx/569be470b326e50afbbc739531ea428b5c6977fd900091e3a8faeaf90b85140b
 ```
 Get All Transactions (inkl. like,comment counter + score)
 ```
-http://192.168.12.5:8000/api/tx/positions
+http://localhost:8080/api/tx/positions
 ```
+All comments/replys related to txid
+```
+http://localhost:8080/api/comments/{txid}
 
 ### POST ###
 #### SIGNUP ####
 POST-Request:
 ```
-curl -X POST -i 'http://192.168.12.5:8000/api/signup' --data '{"Username":"testuser8","PasswordHash":"105d5b6c13df8c30686b0d75b89d98ada04dc32421fd97acfb77bc81e43f6075","EncryptedPk":"this is the excrypted privatekey"}'
+curl -X POST -i 'http://localhost:8080/api/signup' --data '{"Username":"testuser8","PasswordHash":"105d5b6c13df8c30686b0d75b89d98ada04dc32421fd97acfb77bc81e43f6075","EncryptedPk":"this is the excrypted privatekey"}'
 ```
 Possible Responses:
 ```
@@ -68,7 +71,7 @@ Failed:
 #### LOGIN ####
 POST-Request:
 ```
-curl -X POST -H 'Content-Type: application/json' -i 'http://192.168.12.5:8000/api/login' --data '{"Username":"testuser8","PasswordHash":"105d5b6c13df8c30686b0d75b89d98ada04dc32421fd97acfb77bc81e43f6075"}'
+curl -X POST -H 'Content-Type: application/json' -i 'http://localhost:8080/api/login' --data '{"Username":"testuser8","PasswordHash":"105d5b6c13df8c30686b0d75b89d98ada04dc32421fd97acfb77bc81e43f6075"}'
 
 OK:
 {"Username":"**username**","EncryptedPk":"**enc_key**","Login":true}

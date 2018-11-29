@@ -72,18 +72,18 @@ function like(txid){
       data: [prefix, reverseByteTxId],
       cash: { key: pkey }
     }
+  console.log("test like",txid,tx,pkey)
   datacash.send(tx, function(err, res) {
     if(err != null){
+      console.log(err)
       return false
     }else{
-      // likeImg.className = "liked"
       likeCounter.innerHTML = parseInt(likeCounter.innerHTML) + 1
-      // change like img
       likeImg.src = "icons/heart_1.png"
       console.log(res)
       return true
     }
-  })
+  });
 }
 
 // function follow(address){
