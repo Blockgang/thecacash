@@ -17,8 +17,6 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/pmylund/sortutil"
 
-	"github.com/junhsieh/goexamples/fieldbinding/fieldbinding"
-
 	_ "github.com/go-sql-driver/mysql"
 )
 
@@ -42,21 +40,21 @@ func main() {
 	router := mux.NewRouter()
 
 	//Response
-	router.HandleFunc("/api/tx/positions", getPositions).
+	router.HandleFunc(ThecaMainApiPath, getPositions).
 		Methods("GET")
-	router.HandleFunc("/api/comments/{txid:[a-fA-F0-9]{64}}", getComments).
+	router.HandleFunc(CommentApiPath, getComments).
 		Methods("GET")
-	router.HandleFunc("/api/login", postLogin).
+	router.HandleFunc(LoginApiPath, postLogin).
 		Methods("POST")
-	router.HandleFunc("/api/signup", postSignup).
+	router.HandleFunc(SignupApiPAth, postSignup).
 		Methods("POST")
-	router.HandleFunc("/api/tx/{txid:[a-fA-F0-9]{64}}", getTransactionData).
+	router.HandleFunc(TxApiPath, getTransactionData).
 		Methods("GET")
 
 	// Static
-	router.PathPrefix("/").Handler(http.FileServer(http.Dir("/var/www/")))
+	router.PathPrefix("/").Handler(http.FileServer(http.Dir(FileServerHandlePath)))
 
-	http.ListenAndServe(":8000", router)
+	http.ListenAndServe(MuxPort, router)
 	log.Println("Listening...")
 }
 
@@ -101,7 +99,7 @@ func signup(userName string, passwordHash string, encryptedPk string) (SignupRes
 }
 
 func insertLoginIntoMysql(userName string, passwordHash string, encryptedPk string) error {
-	sql_query := "INSERT INTO users (username,password,encrypted_pk) VALUES(?,?,?)"
+	sql_query := MysqlInsertUser
 	insert, err := db.Prepare(sql_query)
 	defer insert.Close()
 	_, err = insert.Query(userName, passwordHash, encryptedPk)
@@ -142,7 +140,7 @@ func check_login(userName string, passwordHash string) (string, error) {
 	var cache *memcache.Item
 	var encryptedKey string
 
-	sql_query := fmt.Sprintf("SELECT encrypted_pk FROM users WHERE username='%s' AND password='%s'", userName, passwordHash)
+	sql_query := fmt.Sprintf(MysqlSelectUserLogin, userName, passwordHash)
 	cache_key := hasher(sql_query)
 	cache, errCache = get_cache(cache_key)
 	if errCache != nil {
@@ -233,7 +231,7 @@ func getTransactionDataFromBackend(txid string) (Theca, error) {
 	var err error
 	var cache *memcache.Item
 
-	sql_query := fmt.Sprintf("SELECT txid,hash,type,title,blocktimestamp,blockheight,sender,UNIX_TIMESTAMP(timestamp) FROM prefix_0xe901 WHERE txid='%s'", txid)
+	sql_query := fmt.Sprintf(MysqlSelectThecaTx, txid)
 	fmt.Println(sql_query)
 	cache_key := hasher(sql_query)
 	cache, errCache = get_cache(cache_key)
@@ -291,7 +289,7 @@ func getCommentsFromBackend(txid string) ([]Comment, error) {
 	var errCache error
 	var err error
 	var cache *memcache.Item
-	sql_query := fmt.Sprintf("SELECT txid,txhash,message,blocktimestamp,blockheight,sender,UNIX_TIMESTAMP(timestamp) FROM prefix_0x6d03 WHERE txhash = '%s'", txid)
+	sql_query := fmt.Sprintf(MysqlSelectComments, txid)
 	fmt.Println(sql_query)
 	cache_key := hasher(sql_query)
 	cache, errCache = get_cache(cache_key)
@@ -348,7 +346,7 @@ func getPositionsFromBackend() ([]Theca, error) {
 	var err error
 	var cache *memcache.Item
 
-	sql_query := "SELECT txid,hash,type,title,blocktimestamp,blockheight,sender,likes,comments FROM prefix_0xe901"
+	sql_query := MysqlSelectThecaTxList
 	cache_key := hasher(sql_query)
 	cache, errCache = get_cache(cache_key)
 	if errCache != nil {
@@ -401,53 +399,6 @@ func getPositionsFromBackend() ([]Theca, error) {
 	} else {
 		json.Unmarshal(cache.Value, &txs)
 	}
-	return txs, err
-}
-
-func selectFromMysql2() ([]Theca, error) {
-	var txs []Theca
-	var errCache error
-	var err error
-	var cache *memcache.Item
-
-	sql_query := "SELECT txid,hash,type,title,blocktimestamp,blockheight,sender FROM prefix_0xe901"
-	cache_key := hasher(sql_query)
-	cache, errCache = get_cache(cache_key)
-	if errCache != nil {
-		query, err := db.Query(sql_query)
-		if err != nil {
-			return nil, err
-		}
-		defer query.Close()
-
-		var fArr []string
-		fb := fieldbinding.NewFieldBinding()
-		fArr, err = query.Columns()
-		if err != nil {
-			return nil, err
-		}
-		fb.PutFields(fArr)
-
-		outArr := []interface{}{}
-
-		for query.Next() {
-			err := query.Scan(fb.GetFieldPtrArr()...)
-			if err != nil {
-				return nil, err
-			}
-			outArr = append(outArr, fb.GetFieldArr())
-		}
-
-		cacheBytes := new(bytes.Buffer)
-		json.NewEncoder(cacheBytes).Encode(outArr)
-		err = set_cache(cache_key, cacheBytes.Bytes(), 5)
-		if err != nil {
-			fmt.Println("Set Cache Error:", err)
-		}
-	} else {
-		json.Unmarshal(cache.Value, &txs)
-	}
-
 	return txs, err
 }
 
