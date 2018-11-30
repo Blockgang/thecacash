@@ -1,6 +1,14 @@
- // Constants
- const ApiURL = "http://localhost:8080/api/v1";
- 
+// Constants
+const ApiURL = "http://localhost:8080/api/v1";
+const BitindexApiURL = "https://api.bitindex.network/api/v1/utxos/";
+const PrefixTheca = "0xe901"
+const PrefixReply = "0x6d03"
+const PrefixLike = "0x6d04"
+const ImageCommentsTrue = "comment_1.png"
+const ImageCommentsFalse = "comment_0.png"
+const ImageLikeTrue = "heart_1.png"
+const ImageLikeFalse = "heart_0.png"
+
 
 // Convert a hex string to a byte array
 function hexToBytes(hex) {
@@ -28,7 +36,7 @@ function send(){ //217 chars
   var title = document.getElementById('title').value
   var type = document.getElementById('data_type').value
   var hash = document.getElementById('hash').value
-  var prefix = "0xe901" //theca init
+  var prefix = PrefixTheca
   var payload = [hash,type,title]
   console.log(payload);
   var tx = {
@@ -47,7 +55,7 @@ function reply(txid){ //comment 184chars
   var pkey = localStorage.getItem('pk');
   var commentCounter = document.getElementById("comment_counter_"+txid)
   var commentImg = document.getElementById("comment_"+txid)
-  var prefix = "0x6d03" // memo reply
+  var prefix = PrefixReply
   var reverseByteTxId = "0x"+reverseBytes(txid)
   var tx = {
       data: [prefix, reverseByteTxId,comment],
@@ -58,7 +66,7 @@ function reply(txid){ //comment 184chars
       return false
     }else{
       commentCounter.innerHTML = parseInt(commentCounter.innerHTML) + 1
-      commentImg.src = "icons/comment_1.png"
+      commentImg.src = ImageCommentsTrue
       console.log(res)
       return true
     }
@@ -70,7 +78,7 @@ function like(txid){
   var pkey = localStorage.getItem('pk');
   var likeCounter = document.getElementById("like_counter_"+txid)
   var likeImg = document.getElementById("like_"+txid)
-  var prefix = "0x6d04" //memo like
+  var prefix = PrefixLike
   var reverseByteTxId = "0x"+reverseBytes(txid)
   var tx = {
       data: [prefix, reverseByteTxId],
@@ -83,47 +91,12 @@ function like(txid){
       return false
     }else{
       likeCounter.innerHTML = parseInt(likeCounter.innerHTML) + 1
-      likeImg.src = "icons/heart_1.png"
+      likeImg.src = ImageLikeTrue
       console.log(res)
       return true
     }
   });
 }
-
-// function follow(address){
-//   // var pkey = document.getElementById('pkey').value
-//   var pkey = localStorage.getItem('pk');
-//   var prefix = "0x6d05"
-//   //todo: validate txid pattern
-//   var tx = {
-//       data: [prefix, txid],
-//       cash: { key: pkey }
-//     }
-//   datacash.send(tx, function(err, res) {
-//     if(err != null){
-//       return false
-//     }else{
-//       return true
-//     }
-//   })
-// }
-//
-// function unfollow(address){
-//   var pkey = document.getElementById('pkey').value
-//   var prefix = "0x6d06"
-//   //todo: validate txid pattern
-//   var tx = {
-//       data: [prefix, txid],
-//       cash: { key: pkey }
-//     }
-//   datacash.send(tx, function(err, res) {
-//     if(err != null){
-//       return false
-//     }else{
-//       return true
-//     }
-//   })
-// }
 
 function check_link(link){
   return link
@@ -140,6 +113,17 @@ function check_title(title){
 function play(hash,title,sender){
   console.log(hash,title);
   download_torrent(hash,title,sender);
+}
+
+function getBalance(address){
+    var address = "qpy3cc67n3j9rpr8c3yx3lv0qc9k2kmfyud9e485w2";
+    var url = BitindexApiURL +address;
+    fetch(url).then(function(r) {
+      return r.json()
+    }).then(function(r) {
+      console.log(r)
+      document.getElementById("MenuBalance").innerHTML = r.data.balance + " satoshis";
+    })
 }
 
 function getFromAPI() {
@@ -165,69 +149,6 @@ function getFromAPI() {
       for(i in r){
         var tx = r[i]
         list_tx_results(tx,true);
-      };
-    };
-  })
-};
-
-
-function bitdb_get_magnetlinks(limit) {
-  var search_string = document.getElementById('search').value
-
-
-  var query = {
-  	"v": 3,
-  	"e": { "out.b1": "hex"  },
-  	"q": {
-  		"db": ["c","u"],
-  		"find": {
-        "out.s4": { "$regex": search_string, "$options": "i" },
-  			"out.b1": "e901",
-  			"out.b0": {
-  				"op": 106
-  			}
-  		},
-  		"limit":100000,
-  		"project": {
-  		  "out.b0": 1,
-  			"out.b1": 1,
-  			"out.s2": 1,
-  			"out.s3": 1,
-  			"out.s4": 1,
-  			"tx": 1,
-  			"blk": 1,
-  			"in.e.a":1,
-  			"_id": 1
-  		}
-  	}
-  };
-  var b64 = btoa(JSON.stringify(query));
-  var url = "https://bitdb.network/q/" + b64;
-
-  var header = {
-    headers: { key: "qz6qzfpttw44eqzqz8t2k26qxswhff79ng40pp2m44" }
-  };
-
-  fetch(url, header).then(function(r) {
-    return r.json()
-  }).then(function(r) {
-
-    document.getElementById('bitdb_output').innerHTML = ""
-    document.getElementById('bitdb_output_container').style.display = "block"
-
-    if(r['c'].length != 0){
-      var tr = document.createElement('tr');
-      for(i in r['c']){
-        var tx = r['c'][i]
-        list_tx_results(tx,true);
-      };
-    };
-
-    if(r['u'].length != 0){
-      var tr = document.createElement('tr');
-      for(i in r['u']){
-        var tx = r['u'][i]
-        list_tx_results(tx,false);
       };
     };
   })
@@ -363,17 +284,17 @@ function list_tx_results(tx,confirmed){
   td_txid.innerHTML = "<a class='result-tx-link' data-toggle='tooltip' title='Tx-Data: " + JSON.stringify(tx) + "' target='_blank' href='https://blockchair.com/bitcoin-cash/transaction/"+ tx.Txid +"'><span class='glyphicon glyphicon-th'></span></a>";
   td_txid.style.width = "15px";
   if (tx.Likes > 0){
-    likeImage = "heart_1.png"
+    likeImage = ImageLikeTrue
   }else{
-    likeImage = "heart_0.png"
+    likeImage = ImageLikeFalse
   }
 
   // var testcomment = "test comment, bla bla bla!\n dies ist ein test :)"
   if (tx.Comments > 0){
-    commentImage = "comment_1.png"
+    commentImage = ImageCommentsTrue
     td_comments.innerHTML = "<button id='openComments_"+tx.Txid +"' onclick='openComments(`"+ tx.Txid +"`)'><img class='comment' id='comment_"+ tx.Txid +"' height='20' src='icons/"+ commentImage +"'><span class='commentcounter' id='comment_counter_"+ tx.Txid +"'>"+ tx.Comments +"</span></button>"
   }else{
-    commentImage = "comment_0.png"
+    commentImage = ImageCommentsFalse
     td_comments.innerHTML = "<button id='openComments_"+tx.Txid +"' onclick='openComments(`"+ tx.Txid +"`)'><img class='comment' id='comment_"+ tx.Txid +"' height='20' src='icons/"+ commentImage +"'><span class='commentcounter' id='comment_counter_"+ tx.Txid +"'>"+ tx.Comments +"</span></button>"
   }
 
@@ -462,8 +383,6 @@ function get_video_data(hash,title,sender){
 
 function download_torrent(hash,title,sender){
   var torrentId = hash + "&tr=udp://explodie.org:6969&tr=udp://tracker.coppersurfer.tk:6969&tr=udp://tracker.empire-js.us:1337&tr=udp://tracker.leechers-paradise.org:6969&tr=udp://tracker.opentrackr.org:1337&tr=wss://tracker.openwebtorrent.com"
-  // var torrentId = "magnet:?xt=urn:btih:" + hash + "&tr=udp://explodie.org:6969&tr=udp://tracker.coppersurfer.tk:6969&tr=udp://tracker.empire-js.us:1337&tr=udp://tracker.leechers-paradise.org:6969&tr=udp://tracker.opentrackr.org:1337&tr=wss://tracker.openwebtorrent.com"
-
 
   var client = new WebTorrent()
 
@@ -482,8 +401,9 @@ function download_torrent(hash,title,sender){
 
     // insert data
     document.getElementById('torrentLink').innerHTML = torrentId
+
     // Video Data from Blockchain
-    get_video_data(hash,title,sender);
+    // get_video_data(hash,title,sender);
 
     // show divs
     document.getElementById('video_output_container').style.display = "block";
