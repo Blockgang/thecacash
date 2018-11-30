@@ -1,13 +1,14 @@
 // Constants
 const ApiURL = "http://localhost:8080/api/v1";
 const BitindexApiURL = "https://api.bitindex.network/api/v1/utxos/";
+const DatacashRPC = "https://bchsvexplorer.com"
 const PrefixTheca = "0xe901"
 const PrefixReply = "0x6d03"
 const PrefixLike = "0x6d04"
-const ImageCommentsTrue = "comment_1.png"
-const ImageCommentsFalse = "comment_0.png"
-const ImageLikeTrue = "heart_1.png"
-const ImageLikeFalse = "heart_0.png"
+const ImageCommentsTrue = "icons/comment_1.png"
+const ImageCommentsFalse = "icons/comment_0.png"
+const ImageLikeTrue = "icons/heart_1.png"
+const ImageLikeFalse = "icons/heart_0.png"
 
 
 // Convert a hex string to a byte array
@@ -41,7 +42,10 @@ function send(){ //217 chars
   console.log(payload);
   var tx = {
       data: [prefix, hash,type,title],
-      cash: { key: pkey }
+      cash: {
+        key: pkey,
+        rpc: DatacashRPC
+      }
     }
   datacash.send(tx, function(err, res) {
     console.log(res)
@@ -59,8 +63,12 @@ function reply(txid){ //comment 184chars
   var reverseByteTxId = "0x"+reverseBytes(txid)
   var tx = {
       data: [prefix, reverseByteTxId,comment],
-      cash: { key: pkey }
+      cash: {
+        key: pkey,
+        rpc: DatacashRPC
+      }
     }
+  console.log(tx)
   datacash.send(tx, function(err, res) {
     if(err != null){
       return false
@@ -82,7 +90,10 @@ function like(txid){
   var reverseByteTxId = "0x"+reverseBytes(txid)
   var tx = {
       data: [prefix, reverseByteTxId],
-      cash: { key: pkey }
+      cash: {
+        key: pkey,
+        rpc: DatacashRPC
+      }
     }
   console.log("test like",txid,tx,pkey)
   datacash.send(tx, function(err, res) {
@@ -284,21 +295,20 @@ function list_tx_results(tx,confirmed){
   td_txid.innerHTML = "<a class='result-tx-link' data-toggle='tooltip' title='Tx-Data: " + JSON.stringify(tx) + "' target='_blank' href='https://blockchair.com/bitcoin-cash/transaction/"+ tx.Txid +"'><span class='glyphicon glyphicon-th'></span></a>";
   td_txid.style.width = "15px";
   if (tx.Likes > 0){
-    likeImage = ImageLikeTrue
+    likeImage = ImageLikeTrue;
   }else{
-    likeImage = ImageLikeFalse
+    likeImage = ImageLikeFalse;
   }
 
-  // var testcomment = "test comment, bla bla bla!\n dies ist ein test :)"
   if (tx.Comments > 0){
-    commentImage = ImageCommentsTrue
-    td_comments.innerHTML = "<button id='openComments_"+tx.Txid +"' onclick='openComments(`"+ tx.Txid +"`)'><img class='comment' id='comment_"+ tx.Txid +"' height='20' src='icons/"+ commentImage +"'><span class='commentcounter' id='comment_counter_"+ tx.Txid +"'>"+ tx.Comments +"</span></button>"
+    commentImage = ImageCommentsTrue;
+    td_comments.innerHTML = "<button id='openComments_"+tx.Txid +"' onclick='openComments(`"+ tx.Txid +"`)'><img class='comment' id='comment_"+ tx.Txid +"' height='20' src='"+ commentImage +"'><span class='commentcounter' id='comment_counter_"+ tx.Txid +"'>"+ tx.Comments +"</span></button>"
   }else{
-    commentImage = ImageCommentsFalse
-    td_comments.innerHTML = "<button id='openComments_"+tx.Txid +"' onclick='openComments(`"+ tx.Txid +"`)'><img class='comment' id='comment_"+ tx.Txid +"' height='20' src='icons/"+ commentImage +"'><span class='commentcounter' id='comment_counter_"+ tx.Txid +"'>"+ tx.Comments +"</span></button>"
+    commentImage = ImageCommentsFalse;
+    td_comments.innerHTML = "<button id='openComments_"+tx.Txid +"' onclick='openComments(`"+ tx.Txid +"`)'><img class='comment' id='comment_"+ tx.Txid +"' height='20' src='"+ commentImage +"'><span class='commentcounter' id='comment_counter_"+ tx.Txid +"'>"+ tx.Comments +"</span></button>"
   }
 
-  td_like.innerHTML = "<a title='like' onclick='like(`"+ tx.Txid +"`)'><img class='like' id='like_"+ tx.Txid +"' height='20' src='icons/"+ likeImage +"'><span class='likecounter' id='like_counter_"+ tx.Txid +"'>"+ tx.Likes +"</span></a>"
+  td_like.innerHTML = "<a title='like' onclick='like(`"+ tx.Txid +"`)'><img class='like' id='like_"+ tx.Txid +"' height='20' src='"+ likeImage +"'><span class='likecounter' id='like_counter_"+ tx.Txid +"'>"+ tx.Likes +"</span></a>"
   td_sender.innerHTML = tx.txid
   td_blockheight.innerHTML = (confirmed) ? (tx.BlockHeight) : ("unconfirmed")
   td_score.innerHTML = tx.Score
