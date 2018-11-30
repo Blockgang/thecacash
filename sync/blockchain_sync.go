@@ -6,10 +6,10 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"os"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -21,7 +21,7 @@ var bq Bitquery
 
 func selectUnconfirmedMysql(prefix string) ([]string, error) {
 	var uc_txs []string
-	query := "SELECT txid FROM prefix_0x%s WHERE blockheight = 0"
+	query := MysqlSelectUnconfirmed
 	query = fmt.Sprintf(query, prefix)
 	uc_query, err := db.Query(query)
 	if err != nil {
@@ -38,7 +38,7 @@ func selectUnconfirmedMysql(prefix string) ([]string, error) {
 }
 
 func updateMysql(prefix string, TxId string, blocktimestamp uint32, blockheight uint32) error {
-	sql_update := "UPDATE prefix_0x%s SET blockheight=?,blocktimestamp=? where txid=?"
+	sql_update := MysqlUpdateUnconfirmed
 	sql_update = fmt.Sprintf(sql_update, prefix)
 	update, err := db.Prepare(sql_update)
 	defer update.Close()
@@ -47,7 +47,7 @@ func updateMysql(prefix string, TxId string, blocktimestamp uint32, blockheight 
 }
 
 func insertIntoMysql(TxId string, link string, data_type string, title string, blocktimestamp uint32, blockheight uint32, sender string) error {
-	sql_query := "INSERT INTO prefix_0xe901 (txid,hash,type,title,blocktimestamp,blockheight,sender) VALUES(?,?,?,?,?,?,?)"
+	sql_query := MysqlInsertTheca
 	insert, err := db.Prepare(sql_query)
 	defer insert.Close()
 	_, err = insert.Exec(TxId, link, data_type, title, blocktimestamp, blockheight, sender)
@@ -55,7 +55,7 @@ func insertIntoMysql(TxId string, link string, data_type string, title string, b
 }
 
 func insertMemoLikeIntoMysql(TxId *string, txHash *string, Sender *string, BlockTimestamp *uint32, BlockHeight *uint32) error {
-	sql_query := "INSERT INTO prefix_0x6d04 (txid,txhash,blocktimestamp,blockheight,sender) VALUES(?,?,?,?,?)"
+	sql_query := MysqlInsertLike
 	insert, err := db.Prepare(sql_query)
 	defer insert.Close()
 	_, err = insert.Exec(TxId, txHash, BlockTimestamp, BlockHeight, Sender)
@@ -63,7 +63,7 @@ func insertMemoLikeIntoMysql(TxId *string, txHash *string, Sender *string, Block
 }
 
 func insertMemoCommentIntoMysql(txId *string, txHash *string, message *string, sender *string, blockTimestamp *uint32, blockHeight *uint32) error {
-	sql_query := "INSERT INTO prefix_0x6d03 (txid,txhash,message,blocktimestamp,blockheight,sender) VALUES(?,?,?,?,?,?)"
+	sql_query := MysqlInsertComment
 	insert, err := db.Prepare(sql_query)
 	if err != nil {
 		fmt.Println(err)
@@ -227,10 +227,10 @@ func getMemoComments(ScannerBlockHeight uint32, unconfirmedInDb []string) uint32
 
 func getBitDbData(query string) ([]byte, error) {
 	b64_query := base64.StdEncoding.EncodeToString([]byte(query))
-	url := "https://bitdb.network/q/" + b64_query
+	url := BitdbApiURL + b64_query
 	client := &http.Client{}
 	req, _ := http.NewRequest("GET", url, nil)
-	req.Header.Set("key", "qz6qzfpttw44eqzqz8t2k26qxswhff79ng40pp2m44")
+	req.Header.Set("key", BitdbApiKey)
 	res, _ := client.Do(req)
 	body, err := ioutil.ReadAll(res.Body)
 	return body, err

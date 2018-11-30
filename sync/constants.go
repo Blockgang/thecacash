@@ -1,6 +1,17 @@
 package main
 
 const (
+	// BitDB
+	// BitdbApiURL = "https://bitdb.network/q/" ==> BCHABC
+	BitdbApiURL = "https://bitgraph.network/q" // ==> BCHSV
+	BitdbApiKey = "qz6qzfpttw44eqzqz8t2k26qxswhff79ng40pp2m44"
+
+	// MYSQL
+	MysqlSelectUnconfirmed = "SELECT txid FROM prefix_0x%s WHERE blockheight = 0"
+	MysqlUpdateUnconfirmed = "UPDATE prefix_0x%s SET blockheight=?,blocktimestamp=? where txid=?"
+	MysqlInsertTheca       = "INSERT INTO prefix_0xe901 (txid,hash,type,title,blocktimestamp,blockheight,sender) VALUES(?,?,?,?,?,?,?)"
+	MysqlInsertLike        = "INSERT INTO prefix_0x6d04 (txid,txhash,blocktimestamp,blockheight,sender) VALUES(?,?,?,?,?)"
+	MysqlInsertComment     = "INSERT INTO prefix_0x6d03 (txid,txhash,message,blocktimestamp,blockheight,sender) VALUES(?,?,?,?,?,?)"
 
 	// Blockheight to start sync
 	ScannerBlockHeight = uint32(550255)
