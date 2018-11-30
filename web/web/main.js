@@ -1,3 +1,7 @@
+ // Constants
+ const ApiURL = "http://localhost:8080/api/v1";
+ 
+
 // Convert a hex string to a byte array
 function hexToBytes(hex) {
     for (var bytes = [], c = 0; c < hex.length; c += 2)
@@ -141,7 +145,7 @@ function play(hash,title,sender){
 function getFromAPI() {
   // var search_string = document.getElementById('search').value
 
-  var url = "http://localhost:8080/api/tx/positions";
+  var url = ApiURL+"/theca/all";
   console.log(url)
   var header = {
     headers: { key: "qz6qzfpttw44eqzqz8t2k26qxswhff79ng40pp2m44" }
@@ -236,7 +240,7 @@ function login(){
   var passwordHash = CryptoJS.SHA256(password).toString();
 
   var xhr = new XMLHttpRequest();
-  var url = "http://localhost:8080/api/login";
+  var url = ApiURL+"/login";
   xhr.open("POST", url, true);
   xhr.setRequestHeader("Content-Type", "application/json");
   xhr.onreadystatechange = function () {
@@ -279,7 +283,7 @@ function signup(){
   var encryptedPrivatekey = CryptoJS.AES.encrypt(privatekey,password).toString();
 
   var xhr = new XMLHttpRequest();
-  var url = "http://localhost:8080/api/signup";
+  var url = ApiURL+"/signup";
   xhr.open("POST", url, true);
   xhr.setRequestHeader("Content-Type", "application/json");
   xhr.onreadystatechange = function () {
@@ -296,8 +300,8 @@ function signup(){
 function openComments(txid){
   console.log(txid);
   var request = new XMLHttpRequest();
-
-  request.open('GET', 'http://localhost:8080/api/comments/'+txid, true);
+  var url = ApiURL+"/comments/"+txid;
+  request.open('GET', url, true);
   request.onload = function () {
     var modal = document.getElementById("commentsModal");
     var span = modal.getElementsByClassName("close")[0];

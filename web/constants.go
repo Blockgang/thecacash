@@ -1,12 +1,15 @@
 package main
 
 const (
+	// API Version
+	ApiVersion = "v1"
+
 	// API Handles
-	ThecaMainApiPath = "/api/tx/positions"
-	CommentApiPath   = "/api/comments/{txid:[a-fA-F0-9]{64}}"
-	LoginApiPath     = "/api/login"
-	SignupApiPAth    = "/api/signup"
-	TxApiPath        = "/api/tx/{txid:[a-fA-F0-9]{64}}"
+	ThecaMainApiPath = "/api/" + ApiVersion + "/theca/all"
+	TxApiPath        = "/api/" + ApiVersion + "/theca/{txid:[a-fA-F0-9]{64}}"
+	CommentApiPath   = "/api/" + ApiVersion + "/comments/{txid:[a-fA-F0-9]{64}}"
+	LoginApiPath     = "/api/" + ApiVersion + "/login"
+	SignupApiPAth    = "/api/" + ApiVersion + "/signup"
 
 	// Fileserver Handles
 	FileServerHandlePath = "/var/www/"
