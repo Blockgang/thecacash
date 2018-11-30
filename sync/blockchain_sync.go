@@ -233,6 +233,7 @@ func getBitDbData(query string) ([]byte, error) {
 	req.Header.Set("key", BitdbApiKey)
 	res, _ := client.Do(req)
 	body, err := ioutil.ReadAll(res.Body)
+	fmt.Println(url)
 	return body, err
 }
 

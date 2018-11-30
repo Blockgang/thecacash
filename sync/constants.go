@@ -3,7 +3,7 @@ package main
 const (
 	// BitDB
 	// BitdbApiURL = "https://bitdb.network/q/" ==> BCHABC
-	BitdbApiURL = "https://bitgraph.network/q" // ==> BCHSV
+	BitdbApiURL = "https://bitgraph.network/q/" // ==> BCHSV
 	BitdbApiKey = "qz6qzfpttw44eqzqz8t2k26qxswhff79ng40pp2m44"
 
 	// MYSQL
