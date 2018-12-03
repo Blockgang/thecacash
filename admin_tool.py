@@ -1,7 +1,8 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-import commands
+import subprocess
+import time
 
 ENV_FILE = ".env"
 # source ${ENV_FILE}
@@ -10,89 +11,114 @@ stackCommonServicesFile = "docker-compose.stack_common-services.yml"
 stackBuildFile = "docker-compose.stack_build.yml"
 stackRunFile = "docker-compose.stack_run.yml"
 
-
 def print_usage():
-    print("Usage: admin_tool.sh [option] [OPTIONAL_DOCKER_TO_BUILD (default: all) docker-service]\n" \
-            "option:  -b        to build containers and build theca.cash in docker\n" \
-            "         -bh       to build containers and build theca.cash in docker (build --force-rm --no-cache --pull)\n" \
-            "         -r        to build containers and run theca.cash in docker\n" \
-            "         -rh       to build containers and run theca.cash in docker (build --force-rm --no-cache --pull) \n" \
-            "         -lb       to docker service logs from build dockers\n" \
+    print("Usage: admin_tool.sh [option] [OPTIONAL_DOCKER_TO_BUILD (default: all) docker-service]\n"
+            "option:  -b        to build containers and build theca.cash in docker\n"
+            "         -bh       to build containers and build theca.cash in docker (build --force-rm --no-cache --pull)\n"
+            "         -r        to build containers and run theca.cash in docker\n"
+            "         -rh       to build containers and run theca.cash in docker (build --force-rm --no-cache --pull) \n"
+            "         -lb       to docker service logs from build dockers\n"
             "         -lr       to docker service logs from run dockers\n")
 
 def createComposeFile():
-    # source ${ENV_FILE}
-    buildSecretConfig = docker-compose.build_template.yml
-    runSecretConfig = docker-compose.run_template.yml
-    commands.getoutput("docker-compose -f docker-compose.build_template.yml -f ${buildSecretConfig} config > ${stackBuildFile}")
-    commands.getoutput("docker-compose -f docker-compose.run_template.yml -f ${runSecretConfig} config > ${stackRunFile}")
+    buildSecretConfig = "docker-compose.build_template.yml"
+    runSecretConfig = "docker-compose.run_template.yml"
+    print(subprocess.call("docker-compose -f docker-compose.build_template.yml -f %s config > %s" % (buildSecretConfig, stackBuildFile), shell=True))
+    print(subprocess.call("docker-compose -f docker-compose.run_template.yml -f %s config > %s" % (runSecretConfig, stackRunFile), shell=True))
 
-def removeStacks():
-    commands.getoutput("docker stack rm ${DOCKER_STACK_NAME_BUILD}")
-    commands.getoutput("docker stack rm ${DOCKER_STACK_NAME_RUN}")
+def evalParams(para):
+    containers = ""
+    buildHardOptions = ""
+    composeFile = ""
+    if para == "hard":
+        buildHardOptions = "--force-rm --no-cache --pull"
+    elif para == "build":
+        composeFile = stackBuildFile
+    elif para == "run":
+        composeFile = stackRunFile
+    # else:
+        # containers = $1" "
+    return composeFile, buildHardOptions, containers
+
+# def removeStacks():
+    # print(subprocess.call("docker stack rm %s" % DOCKER_STACK_NAME_BUILD))
+    # print(subprocess.call("docker stack rm %s" % DOCKER_STACK_NAME_RUN))
 
 def removeContainers():
-    commands.getoutput("createComposeFile compose")
-    commands.getoutput("docker-compose -f ${stackBuildFile} -f ${stackRunFile} rm -sf")
+    print(subprocess.call("createComposeFile compose"))
+    print(subprocess.call("docker-compose -f %s -f %s rm -sf" % (stackBuildFile, stackRunFile)))
 
-def createDockerNetwork():
-    # source ${ENV_FILE}
-    commands.getoutput("docker network rm ${DOCKER_NETWORK_NAME} 2> /dev/null
-    commands.getoutput("docker network create --driver=bridge --attachable ${DOCKER_NETWORK_NAME} --gateway ${NETWORK_GATEWAY} --subnet ${SUBNET}
+# def createDockerNetwork():
+#     subprocess.call("docker network rm ${DOCKER_NETWORK_NAME} 2> /dev/null")
+#     subprocess.call("docker network create --driver=bridge --attachable ${DOCKER_NETWORK_NAME} --gateway ${NETWORK_GATEWAY} --subnet ${SUBNET}")
 
-def buildContainer():
-    # evalParams $@
-    commands.getoutput("docker-compose -f ${composeFile} build ${buildHardOptions} ${containers}
+def buildContainer(do):
+    composeFile, buildHardOptions, containers = evalParams(do)
+    print(subprocess.call("docker-compose -f %s build %s %s}" % (composeFile, buildHardOptions, containers), shell=True))
 
-def startContainer():
-    # evalParams $@
-    # source ${ENV_FILE}
-    commands.getoutput("docker-compose -f ${composeFile} up -d $containers")
+def startContainer(do):
+    composeFile, buildHardOptions, containers  = evalParams(do)
+    print(subprocess.call("docker-compose -f %s up -d $containers" % composeFile, shell=True))
 
-def showLogs():
-    # evalParams $@
-    # source ${ENV_FILE}
-    commands.getoutput("docker-compose -f ${composeFile} logs -f $containers")
-
-
-#  case switch start
-def create_docker_network():
-    print("hello")
+def showLogs(do):
+    composeFile, buildHardOptions, containers = evalParams(do)
+    print(subprocess.call("docker-compose -f %s logs -f $containers" % composeFile, shell=True))
 
 def create_docker_secrets():
-    print_usage()
+    print("create_docker_secrets")
+    print(subprocess.call("./create_docker_secrets.sh"))
 
 def build():
-    print("hello")
+    print("build theca.cash")
+    createComposeFile()
+    buildContainer("build")
+    startContainer("build")
 
 def build_hard():
-    print("hello")
+    print("build theca.cash hard")
+    createComposeFile()
+    buildContainer("build")
+    # print(subprocess.call("docker stack rm % 2> /dev/null" % DOCKER_STACK_NAME_BUILD))
+    # sleeping a while to delete docker stack
+    time.sleep(20)
 
 def run():
-    print("hello")
+    print("run theca.cash")
+    createComposeFile()
+    buildContainer("run")
+    startContainer("run")
 
 def run_hard():
-    print("hello")
+    print("run theca.cash hard")
+    createComposeFile()
+    buildContainer("run hard")
+    # removeStacks()
 
 def removeStacks():
-    print("hello")
+    # print(subprocess.call("docker stack rm %s 2> /dev/null" % DOCKER_STACK_NAME_RUN))
+    # sleeping a while to delete docker stack
+    time.sleep(20)
+    startContainer("run hard")
 
 def removeContainers():
     createComposeFile()
-    print("hello")
+    print("removeContainers")
+    removeContainers()
 
 def show_logs_build():
-    print("hello")
+    print("show logs build dockers")
+    showLogs("build")
 
 def show_logs_run():
-    print("hello")
+    print("show logs run dockers")
+    showLogs("run")
 
 def quit():
     print("Goodbye")
     exit()
 
 switcher = {
-    1 : create_docker_network,
+    # 1 : create_docker_network,
     2 : create_docker_secrets,
     3 : build,
     4 : build_hard,
@@ -114,138 +140,12 @@ def numbers_to_strings(argument):
 def ask():
     response = None
     while response not in switcher:
-        response = raw_input ("Choose a Number: ")
+        response = input ("Choose a Number: ")
         response = int(response)
         if response in switcher:
-            print(response)
+            # print(response)
             numbers_to_strings(response)
 
+# print_usage()
+
 ask()
-
-exit()
-
-
-#
-# function evalParams () {
-#     containers=""
-#     while (( "$#" )); do
-#         if [ "$1" == "hard" ]; then
-#             buildHardOptions="--force-rm --no-cache --pull"
-#         elif [ "$1" == "build" ]; then
-#             composeFile=${stackBuildFile}
-#         elif [ "$1" == "run" ]; then
-#             composeFile=${stackRunFile}
-#         else
-#             containers+=$1" "
-#         fi
-#         shift
-#     done
-# }
-#
-# function doit {
-#
-#         case "$1" in
-#         "create_docker_network")
-#             echo "create theca.cash network"
-#             createDockerNetwork
-#             ;;
-#         "create_docker_secrets")
-#             echo "create_docker_secrets"
-#             ./create_docker_secrets.sh
-#             ;;
-#         "build")
-#             echo "build theca.cash ${*:2}"
-#             createComposeFile
-#             buildContainer build ${*:2}
-#             startContainer build ${*:2}
-#             ;;
-#         "build_hard")
-#             echo "build theca.cash hard ${*:2}"
-#             createComposeFile
-#             buildContainer build hard ${*:2}
-#             docker stack rm ${DOCKER_STACK_NAME_BUILD} 2> /dev/null
-#             # sleeping a while to delete docker stack
-#             sleep 20
-# 	    startContainer build hard ${*:2}
-#             ;;
-#         "run")
-#             echo "run theca.cash ${*:2}"
-#             createComposeFile
-#             buildContainer run ${*:2}
-#             startContainer run ${*:2}
-#             ;;
-#         "run_hard")
-#             echo "run theca.cash hard ${*:2}"
-#             createComposeFile
-#             buildContainer run hard ${*:2}
-# 	    docker stack rm ${DOCKER_STACK_NAME_RUN} 2> /dev/null
-#             # sleeping a while to delete docker stack
-#             sleep 20
-#             startContainer run hard ${*:2}
-#             ;;
-#         "removeContainers")
-#             echo "removeContainers"
-#             removeContainers
-#             ;;
-#         "show_logs_build")
-#             echo "show logs build dockers ${*:2}"
-#             showLogs build ${*:2}
-#             ;;
-#         "show_logs_run")
-#             echo "show logs run dockers ${*:2}"
-#             showLogs run ${*:2}
-#             ;;
-#         "Quit")
-#             echo "exit"
-#             exit 0
-#             ;;
-#         *)
-#             echo "unknown option"
-#             ;;
-#     esac
-# }
-#
-
-#
-# if (( $# == 0 ))
-# then
-#     if (( $OPTIND == 1 ))
-#     then
-#         PS3='Please enter your choice: '
-#         select opt in "${options[@]}"
-#         do
-#             doit "${opt}"
-#         done
-#     fi
-# fi
-#
-# case "$1" in
-#     "-b")
-#         doit build ${*:2}
-#         ;;
-#     "-bh")
-#         doit build_hard ${*:2}
-#         ;;
-#     "-r")
-#         doit run ${*:2}
-#         doit "${opt}"
-#         ;;
-#     "-rh")
-#         doit run_hard ${*:2}
-#         ;;
-#     "-lb")
-#         doit show_logs_build ${*:2}
-#         ;;
-#     "-lr")
-#         doit show_logs_run ${*:2}
-#         ;;
-#     "-h")
-#         print_usage
-#         exit 0
-#         ;;
-#     *)
-#         echo -e "argument error \n"
-#         print_usage
-#         exit 1
-#         ;;
-# esac
