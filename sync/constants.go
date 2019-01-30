@@ -4,7 +4,7 @@ const (
 	// BitDB
 	// BitdbApiURL = "https://bitdb.network/q/" ==> BCHABC
 	BitdbApiURL = "https://babel.bitdb.network/q/1DHDifPvtPgKFPZMRSxmVHhiPvFmxZwbfh/"
-	BitdbApiKey = "qz6qzfpttw44eqzqz8t2k26qxswhff79ng40pp2m44"
+	BitdbApiKey = "qzudnqxkd9mplr003rnzr83qmapnyf09yynescajl0"
 
 	// MYSQL
 	MysqlSelectUnconfirmed = "SELECT txid FROM prefix_0x%s WHERE blockheight = 0"
